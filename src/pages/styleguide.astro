@@ -1,0 +1,193 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import Card from '@components/Card.astro';
+import IconTile from '@components/IconTile.astro';
+import ServiceCard from '@components/ServiceCard.astro';
+import CaseStudyCard from '@components/CaseStudyCard.astro';
+import CheckList from '@components/CheckList.astro';
+import PriceTimeline from '@components/PriceTimeline.astro';
+import Flag from '@components/Flag.astro';
+import CTA from '@components/CTA.astro';
+import { place } from '@lib/work';
+
+const icons = [
+  'ai', 'apps', 'social', 'spark', 'chat', 'check', 'search',
+  'clipboard', 'clock', 'megaphone', 'tag', 'key', 'globe', 'mail',
+] as const;
+const themes = [
+  { key: 'dark', label: 'Dark' },
+  { key: 'light', label: 'Light' },
+] as const;
+
+const sampleWork = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order)[0];
+---
+
+<BaseLayout
+  title="Style guide"
+  description="Internal component and design-system reference for the Brightstack website."
+  image="/og/styleguide.png"
+  noindex
+>
+  <Section>
+    <SectionHeading
+      as="h1"
+      label="Internal"
+      title="Style guide"
+      subtitle="Every reusable component, shown in dark and light mode. Not linked publicly."
+    />
+
+    <div class="sg-grid">
+      {
+        themes.map((t) => (
+          <div class={`sg-panel theme-${t.key}`}>
+            <p class="sg-panel__label">{t.label} mode</p>
+
+            {/* Buttons */}
+            <h2 class="sg-h2">Buttons</h2>
+            <div class="sg-row">
+              <Button variant="primary">Primary</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="ghost">Ghost</Button>
+              <WhatsAppButton variant="primary" />
+            </div>
+
+            {/* Section heading */}
+            <h2 class="sg-h2">Section heading</h2>
+            <SectionHeading label="What we do" title="A clear heading" subtitle="With a short supporting subtitle underneath." />
+
+            {/* Icon tiles */}
+            <h2 class="sg-h2">Icon tiles</h2>
+            <div class="sg-row">
+              {icons.map((n) => <IconTile name={n} label={n} />)}
+            </div>
+
+            {/* Card */}
+            <h2 class="sg-h2">Card</h2>
+            <Card>
+              <h3 style="margin:0 0 8px">Card title</h3>
+              <p style="margin:0;color:var(--muted)">A simple surface container with a border and rounded corners.</p>
+            </Card>
+
+            {/* Service card */}
+            <h2 class="sg-h2">Service card</h2>
+            <ServiceCard
+              title="AI Systems"
+              summary="Chatbots, WhatsApp automation and smart workflows that keep working for you 24/7."
+              icon="ai"
+              outcomes={['Customers get answers instantly', 'Bookings captured automatically', 'Hours of admin saved']}
+              href="/services/ai-systems"
+            />
+
+            {/* Case study card */}
+            <h2 class="sg-h2">Case study card</h2>
+            {sampleWork && (
+              <CaseStudyCard
+                client={sampleWork.data.client}
+                location={place(sampleWork.data)}
+                result={sampleWork.data.result}
+                image={sampleWork.data.image}
+                imageAlt={sampleWork.data.imageAlt}
+                href={`/work/${sampleWork.id}`}
+              />
+            )}
+
+            {/* Lists */}
+            <h2 class="sg-h2">Check list / dot list</h2>
+            <CheckList items={['Customers get answers instantly', 'Hours of admin saved']} />
+            <CheckList items={['WhatsApp assistants', 'Website chatbots']} variant="dot" />
+
+            {/* Price + timeline */}
+            <h2 class="sg-h2">Price &amp; timeline</h2>
+            <PriceTimeline timeline="2–6 weeks" priceFrom={{ gbp: '£XXX', pkr: 'PKR XX,XXX' }} />
+
+            {/* Flags */}
+            <h2 class="sg-h2">Flags</h2>
+            <div class="sg-row">
+              <Flag country="uk" height={18} /> <Flag country="pk" height={18} />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <CTA />
+</BaseLayout>
+
+<style>
+  .sg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 860px) {
+    .sg-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Force local theming so both panels render regardless of page theme. */
+  .sg-panel {
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .theme-dark {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #f5f7fb;
+    --muted: #a3abbd;
+    --accent: #00d4ff;
+    --gradient-text: var(--brand-gradient);
+  }
+  .theme-light {
+    --bg: #fafbff;
+    --surface: #ffffff;
+    --border: rgba(0, 0, 0, 0.08);
+    --text: #0a0e1a;
+    --muted: #4b5568;
+    --accent: #2d46e0;
+    --gradient-text: linear-gradient(135deg, #0891b2, #3b5bff, #9333ea);
+  }
+  /* Panels are flex columns; never let a component get squashed. */
+  .sg-panel > :global(*) {
+    flex-shrink: 0;
+  }
+  .sg-panel__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sg-h2 {
+    font-size: 15px;
+    color: var(--muted);
+    margin: 18px 0 2px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  .sg-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  /* Neutralize the global SectionHeading bottom margin inside panels. */
+  .sg-panel :global(.section-heading) {
+    margin-bottom: 0;
+  }
+</style>

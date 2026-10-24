@@ -1,0 +1,173 @@
+---
+import Logo from '@components/Logo.astro';
+import ThemeToggle from '@components/ThemeToggle.astro';
+import Button from '@components/Button.astro';
+import { NAV_MAIN } from '@config';
+import { cleanPath } from '@lib/seo';
+
+const current = cleanPath(Astro.url.pathname);
+const isActive = (href: string) =>
+  href === '/' ? current === '/' : current === href || current.startsWith(href + '/');
+---
+
+<header class="site-header" id="site-header">
+  <div class="container site-header__inner">
+    <Logo />
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {
+          NAV_MAIN.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={['site-nav__link', { 'is-active': isActive(item.href) }]}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <ThemeToggle />
+      <Button href="/contact" variant="primary" class="site-header__cta">
+        Free consultation
+      </Button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    /* Near-solid (96%) so content never shows through. No backdrop-filter:
+       at this opacity the blur is invisible, and it forces a repaint on every
+       scroll frame on phones. */
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    border-bottom: 1px solid var(--border);
+    transition:
+      transform var(--dur-base) var(--ease-out-expo),
+      background var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
+    /* Stays put during page-to-page view transitions. */
+    view-transition-name: site-header;
+  }
+  /* Slides away while reading down; back the moment you scroll up or tab into it. */
+  .site-header.is-hidden:not(:focus-within) {
+    transform: translateY(-100%);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 72px;
+    transition: height var(--dur-base) var(--ease-out-expo);
+  }
+  /* Shrink slightly once the page is scrolled. */
+  .site-header.is-scrolled .site-header__inner {
+    height: 58px;
+  }
+  .site-header.is-scrolled {
+    background: color-mix(in srgb, var(--bg) 98%, transparent);
+  }
+
+  .site-nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 16px;
+    transition: color var(--dur-fast) ease, background var(--dur-fast) ease;
+  }
+  /* Gradient underline that grows from the centre on hover / current page. */
+  .site-nav__link::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 8px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand-gradient);
+    transform: scaleX(0);
+    transition: transform var(--dur-base) var(--ease-out-expo);
+  }
+  .site-nav__link:hover {
+    color: var(--text);
+  }
+  .site-nav__link:hover::after,
+  .site-nav__link.is-active::after {
+    transform: scaleX(1);
+  }
+  .site-nav__link.is-active {
+    color: var(--text);
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* On mobile, the bottom tab bar handles navigation. */
+  @media (max-width: 860px) {
+    .site-nav {
+      display: none;
+    }
+  }
+  /* Phones: too narrow to sit beside the logo; the tab bar and page CTAs
+     cover it. :global because the class lands inside the Button component. */
+  @media (max-width: 600px) {
+    .site-header__actions :global(.site-header__cta) {
+      display: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var header = document.getElementById('site-header');
+    if (!header) return;
+    var lastY = window.scrollY;
+    var ticking = false;
+    var update = function () {
+      ticking = false;
+      var y = window.scrollY;
+      header.classList.toggle('is-scrolled', y > 8);
+      // Hide when reading down past the hero; show again on any scroll up.
+      if (y > lastY + 6 && y > 240) header.classList.add('is-hidden');
+      else if (y < lastY - 6 || y <= 240) header.classList.remove('is-hidden');
+      lastY = y;
+    };
+    update();
+    window.addEventListener(
+      'scroll',
+      function () {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>

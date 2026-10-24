@@ -1,0 +1,246 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import IconTile from '@components/IconTile.astro';
+import Flag from '@components/Flag.astro';
+import CTA from '@components/CTA.astro';
+import ContactForm from '@components/ContactForm.astro';
+import { EMAIL, PHONE_DISPLAY, SITE_URL } from '@config';
+
+const description =
+  'Get a free consultation with Brightstack. Message us on WhatsApp or email us. We reply within 24 hours and work with businesses across the UK and Pakistan.';
+
+const markets = [
+  {
+    country: 'uk',
+    name: 'United Kingdom',
+    text: 'Prices in GBP. We work together over video calls, WhatsApp and email, whichever suits you.',
+  },
+  {
+    country: 'pk',
+    name: 'Pakistan',
+    text: 'Prices in PKR. We work together over WhatsApp, phone calls and video meetings.',
+  },
+] as const;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: 'Contact Brightstack',
+  url: new URL('/contact', SITE_URL).href,
+};
+---
+
+<BaseLayout title="Contact" description={description} image="/og/contact.png" jsonLd={jsonLd}>
+  <Section>
+    <SectionHeading
+      as="h1"
+      label="Contact"
+      title="Let's talk about your business"
+      subtitle="Tell us what's slowing you down. We'll reply with a clear, no-pressure plan, and your first consultation is free."
+    />
+
+    <p class="reply">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3.5 2" />
+      </svg>
+      We reply within 24 hours
+    </p>
+
+    <div class="contact-grid">
+      <section class="form-card" aria-labelledby="form-title">
+        <h2 id="form-title" class="form-card__title">Send us a message</h2>
+        <p class="form-card__intro">
+          Takes about two minutes. Prefer to chat? <a href="#other-ways">Message us on WhatsApp</a>.
+        </p>
+        <ContactForm />
+      </section>
+
+      <aside class="contact-aside" id="other-ways" aria-labelledby="other-ways-title">
+        <h2 id="other-ways-title" class="aside-title">Prefer to chat?</h2>
+        <ul class="methods plain-list" data-reveal-stagger>
+          <li class="method spotlight">
+            <IconTile name="chat" />
+            <h3 class="method__title">WhatsApp</h3>
+            <p class="method__text">The fastest way to reach us. Send a message and we'll get back to you the same day where we can.</p>
+            <p class="method__detail">{PHONE_DISPLAY}</p>
+            <WhatsAppButton variant="primary" label="Message us on WhatsApp" />
+          </li>
+          <li class="method spotlight">
+            <IconTile name="mail" />
+            <h3 class="method__title">Email</h3>
+            <p class="method__text">Prefer to write it all down? Email us the details and we'll reply with next steps.</p>
+            <p class="method__detail">{EMAIL}</p>
+            <Button href={`mailto:${EMAIL}`} variant="secondary">Send an email</Button>
+          </li>
+        </ul>
+      </aside>
+    </div>
+  </Section>
+
+  <Section bordered>
+    <SectionHeading
+      label="Where we work"
+      title="Two markets, one team"
+      subtitle="We work with small and growing businesses in both countries, with local pricing in each."
+    />
+    <ul class="markets plain-list" data-reveal-stagger>
+      {
+        markets.map((m) => (
+          <li class="market spotlight">
+            <span class="market__flag">
+              <Flag country={m.country} height={22} />
+            </span>
+            <h3 class="market__name">{m.name}</h3>
+            <p class="market__text">{m.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <CTA
+    heading="Ready when you are"
+    text="One quick message is all it takes. Tell us about your business and we'll take it from there."
+    whatsappLabel="Get a free consultation"
+    secondary="email"
+  />
+</BaseLayout>
+
+<style>
+  .reply {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: -16px 0 36px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    color: var(--text);
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .reply svg {
+    color: var(--accent);
+    flex: none;
+  }
+
+  /* Form is the main column; WhatsApp/email sit beside it on wide screens. */
+  .contact-grid {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .contact-grid {
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: 48px;
+    }
+    .contact-aside {
+      position: sticky;
+      top: 96px;
+    }
+  }
+  .form-card {
+    padding: clamp(20px, 4vw, 36px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    scroll-margin-top: 96px;
+  }
+  .form-card__title {
+    margin: 0 0 8px;
+    font-size: clamp(26px, 3vw, 34px);
+  }
+  .form-card__intro {
+    margin: 0 0 24px;
+    color: var(--muted);
+  }
+  .form-card__intro a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .aside-title {
+    margin: 0 0 16px;
+    font-size: clamp(22px, 2.4vw, 26px);
+  }
+
+  .methods {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Side by side only while the aside sits under the form (tablet widths). */
+  @media (min-width: 760px) and (max-width: 1023px) {
+    .methods {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .method {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .method__title {
+    margin: 6px 0 0;
+    font-size: clamp(22px, 2.4vw, 26px);
+  }
+  .method__text {
+    margin: 0;
+    color: var(--muted);
+  }
+  .method__detail {
+    margin: 4px 0 8px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 19px;
+    overflow-wrap: anywhere;
+  }
+  .method :global(.btn) {
+    margin-top: auto;
+  }
+
+  .markets {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 760px) {
+    .markets {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .market {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .market__flag {
+    display: inline-flex;
+  }
+  .market__name {
+    margin: 6px 0 0;
+    font-size: clamp(22px, 2.4vw, 26px);
+  }
+  .market__text {
+    margin: 0;
+    color: var(--muted);
+  }
+</style>

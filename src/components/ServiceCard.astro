@@ -1,0 +1,102 @@
+---
+import IconTile from '@components/IconTile.astro';
+
+interface Props {
+  title: string;
+  summary: string;
+  icon: 'ai' | 'apps' | 'social';
+  href: string;
+  /** Up to three plain-language outcomes, shown as bullets. */
+  outcomes?: string[];
+  /** Heading level for the title: 2 when the card sits directly under the page h1. */
+  headingLevel?: 2 | 3;
+}
+const { title, summary, icon, href, outcomes = [], headingLevel = 3 } = Astro.props;
+const Heading = headingLevel === 2 ? "h2" : "h3";
+---
+
+<a class="service-card spotlight" href={href}>
+  <IconTile name={icon} />
+  <Heading class="service-card__title">{title}</Heading>
+  <p class="service-card__summary">{summary}</p>
+  {
+    outcomes.length > 0 && (
+      <ul class="service-card__outcomes">
+        {outcomes.slice(0, 3).map((o) => (
+          <li>{o}</li>
+        ))}
+      </ul>
+    )
+  }
+  <span class="service-card__more">
+    Learn more <span class="nudge" aria-hidden="true">&rarr;</span>
+  </span>
+</a>
+
+<style>
+  /* Subgrid: cards in the same row share tracks, so summaries, bullet
+     lists and "Learn more" line up even when copy wraps differently.
+     Outside a grid parent this falls back to a plain stack. */
+  .service-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 5;
+    row-gap: 14px;
+    align-content: start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    transition: transform var(--dur-base) var(--ease-out-expo), border-color var(--dur-base) ease, box-shadow var(--dur-base) var(--ease-out-expo);
+  }
+  .service-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.45);
+    border-color: var(--brand-blue);
+  }
+  .service-card__title {
+    margin: 6px 0 0;
+    /* Same size whether rendered as h2 or h3. */
+    font-size: clamp(22px, 2.5vw, 30px);
+  }
+  .service-card__summary {
+    color: var(--muted);
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  .service-card__outcomes {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .service-card__outcomes li {
+    position: relative;
+    padding-left: 28px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  /* Check mark */
+  .service-card__outcomes li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.32em;
+    width: 12px;
+    height: 7px;
+    border-left: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    transform: rotate(-45deg);
+  }
+  .service-card__more {
+    align-self: end;
+    padding-top: 6px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 16px;
+  }
+</style>

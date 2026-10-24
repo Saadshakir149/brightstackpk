@@ -1,0 +1,29 @@
+---
+import Button from '@components/Button.astro';
+import { whatsappUrl, WHATSAPP_MESSAGE } from '@config';
+
+interface Props {
+  /** Override the pre-filled message. */
+  message?: string;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  label?: string;
+  class?: string;
+}
+const {
+  message = WHATSAPP_MESSAGE,
+  variant = 'primary',
+  label = 'WhatsApp us',
+  class: className = '',
+} = Astro.props;
+// Accessible name = the visible label (WCAG 2.5.3), plus where it goes
+// for screen readers when the label doesn't already say so.
+const saysWhatsApp = /whatsapp/i.test(label);
+---
+
+<Button href={whatsappUrl(message)} external variant={variant} class={className}>
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+    <path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm5.6 14.1c-.2.6-1.2 1.2-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.7-1.2-4.4-3.9-4.6-4.1-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2.1.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.3 0 .5l-.4.6c-.2.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.8.9c.3.1.4.2.5.3 0 .2 0 .8-.2 1.3z" />
+  </svg>
+  <slot>{label}</slot>
+  {!saysWhatsApp && <span class="sr-only"> on WhatsApp</span>}
+</Button>

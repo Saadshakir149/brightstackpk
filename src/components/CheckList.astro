@@ -1,0 +1,50 @@
+---
+interface Props {
+  items: readonly string[];
+  /** check = outcomes/benefits, dot = neutral list items. */
+  variant?: 'check' | 'dot';
+  class?: string;
+}
+const { items, variant = 'check', class: className = '' } = Astro.props;
+---
+
+<ul class:list={['checklist', `checklist--${variant}`, className]}>
+  {items.map((item) => <li>{item}</li>)}
+</ul>
+
+<style>
+  .checklist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .checklist li {
+    position: relative;
+    padding-left: 30px;
+    line-height: 1.55;
+  }
+  .checklist--check li::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 0.38em;
+    width: 12px;
+    height: 7px;
+    border-left: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    transform: rotate(-45deg);
+  }
+  .checklist--dot li::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 0.62em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--brand-gradient);
+  }
+</style>

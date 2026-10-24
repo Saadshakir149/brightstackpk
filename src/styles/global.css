@@ -1,0 +1,458 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Theme tokens — semantic CSS variables.
+   Dark is the default (:root). Light overrides under
+   [data-theme="light"]. A no-flash inline script in the layout
+   sets data-theme before paint.
+   ============================================================ */
+:root {
+  /* Dark theme (default) */
+  --bg: #0A0E1A;
+  --surface: #111827;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #F5F7FB;
+  --muted: #A3ABBD;
+
+  /* Brand gradient — accents only, never body text */
+  --brand-gradient: linear-gradient(135deg, #00D4FF, #3B5BFF, #A855F7);
+  --brand-cyan: #00D4FF;
+  --brand-blue: #3B5BFF;
+  --brand-violet: #A855F7;
+
+  /* Contrast-safe accent tokens (AA in both themes).
+     --accent: small accent text, focus rings, active states.
+     --gradient-text: large gradient headline words (>=3:1).
+     --btn-bg: solid primary button colour; white text on it is 5.1:1,
+       and 6.4:1 on --btn-bg-hover. */
+  --accent: #00D4FF;
+  --gradient-text: var(--brand-gradient);
+  --btn-bg: #3B5BFF;
+  --btn-bg-hover: #2E47E0;
+  --icon-stop-1: #00D4FF;
+  --icon-stop-2: #3B5BFF;
+  --icon-stop-3: #A855F7;
+
+  /* Forms: input outlines need >=3:1 (WCAG 1.4.11), the subtle --border is ~1.2:1.
+     Error/success text is >=4.5:1 on --surface. */
+  --field-border: #6B7488;
+  --danger: #FF8F8F;
+  --success: #4ADE80;
+
+  /* Motion: one vocabulary for the whole site (see CLAUDE.md "Motion system"). */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 200ms;
+  --dur-base: 400ms;
+  --dur-reveal: 700ms;
+
+  /* Shape & layout */
+  --radius: 16px;
+  --radius-lg: 24px;
+  --maxw: 1200px;
+  --gutter: 20px;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #FAFBFF;
+  --surface: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.08);
+  --text: #0A0E1A;
+  --muted: #4B5568;
+  --accent: #2D46E0;
+  --gradient-text: linear-gradient(135deg, #0891B2, #3B5BFF, #9333EA);
+  --icon-stop-1: #0891B2;
+  --icon-stop-2: #3B5BFF;
+  --icon-stop-3: #9333EA;
+  --field-border: #7A8396;
+  --danger: #C81E1E;
+  --success: #15803D;
+  color-scheme: light;
+}
+
+/* Expose semantic tokens to Tailwind utilities (bg-bg, text-text,
+   text-muted, bg-surface, border-border, font-heading/body, etc.).
+   `inline` keeps them referencing the live CSS vars so utilities
+   follow the active theme. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-violet: var(--brand-violet);
+
+  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+}
+
+/* ============================================================
+   Base element styles
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 1.125rem; /* 18px */
+  }
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(40px, 7vw, 80px);
+}
+
+h2 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+h3 {
+  font-size: clamp(22px, 2.5vw, 30px);
+}
+
+p, li {
+  text-wrap: pretty;
+}
+
+/* Never let text fall below 14px */
+small, .text-small {
+  font-size: 14px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg, video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================================
+   Utilities & helpers
+   ============================================================ */
+
+/* Brand gradient text for key accent words only */
+.gradient-text {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Visually hidden but available to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Controls that only work with JS (e.g. filters) stay hidden without it. */
+.js-only {
+  display: none !important;
+}
+.js .js-only {
+  display: flex !important;
+}
+
+/* Skip link — visible on focus */
+.skip-link {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -150%);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  z-index: 100;
+  transition: transform 150ms ease;
+}
+.skip-link:focus {
+  transform: translate(-50%, 0);
+}
+
+/* Visible focus states everywhere */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   Smooth reveal-on-scroll (700ms expo-out, staggered).
+   Content is visible by default. The script only marks elements
+   that start BELOW the fold as pending, so nothing on screen is
+   ever hidden; without JS or with reduced motion, nothing is.
+   [data-reveal]         -> the element reveals as one piece
+   [data-reveal-stagger] -> each direct child reveals, 80ms apart
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal-item {
+    transition:
+      opacity var(--dur-reveal) var(--ease-out-expo),
+      transform var(--dur-reveal) var(--ease-out-expo);
+    transition-delay: calc(var(--i, 0) * 80ms);
+  }
+  .js .reveal-item.reveal-pending {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@media print {
+  .reveal-pending {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================================
+   Card spotlight: a soft brand glow on the card BORDER that
+   follows the pointer (never behind the text). motion.ts sets
+   --mx/--my. Touch screens light it up when the card is in view.
+   ============================================================ */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+/* The glow layer only exists while shown (hover / in view): an invisible
+   masked layer on every card still costs style and paint work at load. */
+.spotlight::after {
+  content: none;
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in srgb, var(--brand-cyan) 90%, transparent),
+    color-mix(in srgb, var(--brand-violet) 60%, transparent) 40%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out-expo);
+  pointer-events: none;
+  z-index: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .spotlight:hover::after {
+    content: "";
+    opacity: 1;
+  }
+}
+.spotlight.in-view::after {
+  content: "";
+  opacity: 0.75;
+}
+/* Fade in from nothing when the layer is created. */
+@starting-style {
+  .spotlight::after {
+    opacity: 0;
+  }
+}
+
+/* Icons inside spotlight cards react: a small, springy lift. */
+.spotlight :is(.icon-tile svg) {
+  transition: transform var(--dur-base) var(--ease-out-back);
+}
+@media (hover: hover) and (pointer: fine) {
+  .spotlight:hover :is(.icon-tile svg) {
+    transform: scale(1.12) rotate(-6deg);
+  }
+}
+.spotlight.in-view :is(.icon-tile svg) {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+/* Arrows nudge forward on hover ("Learn more →"). */
+.nudge {
+  display: inline-block;
+  transition: transform var(--dur-base) var(--ease-out-expo);
+}
+@media (hover: hover) {
+  :is(a, button):hover .nudge {
+    transform: translateX(5px);
+  }
+}
+
+/* ============================================================
+   Scroll progress: a 3px brand-gradient bar at the very top.
+   Pure CSS scroll-driven animation; browsers without support
+   simply don't show it.
+   ============================================================ */
+.scroll-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      display: block;
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 3px;
+      z-index: 60;
+      background: var(--brand-gradient);
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      animation: scroll-progress linear both;
+      pointer-events: none;
+    }
+    /* Separate, higher-specificity rule on purpose: the CSS minifier would
+       otherwise fold this into the `animation` shorthand, which browsers
+       reject (the timeline is reset-only there), killing the whole bar. */
+    html .scroll-progress {
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+@keyframes scroll-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ============================================================
+   FAQ / <details>: smooth open & close where supported
+   (interpolate-size + ::details-content), instant elsewhere.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  details::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--dur-base) var(--ease-out-expo),
+      content-visibility var(--dur-base) allow-discrete;
+  }
+  details[open]::details-content {
+    height: auto;
+  }
+}
+
+/* ============================================================
+   Page-to-page transitions (cross-document View Transitions,
+   zero JS). Header and tab bar stay put; the page glides.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-out 220ms var(--ease-in-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 520ms var(--ease-out-expo) both;
+  }
+  /* Same-page transitions (e.g. /work filters): page stays still, only the
+     named elements animate. */
+  html.vt-local::view-transition-old(root),
+  html.vt-local::view-transition-new(root) {
+    animation: none;
+  }
+  html.vt-local::view-transition-group(*) {
+    animation-duration: 500ms;
+    animation-timing-function: var(--ease-out-expo);
+  }
+  /* Theme switch: the new theme spreads out from the toggle button.
+     Header/tab bar join the root snapshot so the whole screen reveals as one. */
+  html.theme-switching :is(.site-header, .tabbar) {
+    view-transition-name: none;
+  }
+  html.theme-switching::view-transition-old(root) {
+    animation: none;
+  }
+  html.theme-switching::view-transition-new(root) {
+    animation: theme-reveal 650ms var(--ease-in-out) both;
+  }
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x, 100%) var(--vt-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 100%) var(--vt-y, 0%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

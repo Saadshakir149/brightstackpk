@@ -1,0 +1,320 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import IconTile from '@components/IconTile.astro';
+import CTA from '@components/CTA.astro';
+import { SITE_URL } from '@config';
+
+// Founder photo: picked up automatically from src/assets/team/saad.* if present.
+const photos = import.meta.glob<ImageMetadata>('/src/assets/team/saad.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+  import: 'default',
+});
+const founderPhoto = Object.values(photos)[0];
+
+const description =
+  'Meet Saad Shakir, the software engineer from Multan behind Brightstack, and why we make smart technology simple for small businesses.';
+
+const values = [
+  {
+    icon: 'chat',
+    title: 'Plain language, always',
+    text: "If we can't explain it simply, we haven't understood it well enough. No jargon, ever.",
+  },
+  {
+    icon: 'spark',
+    title: 'Results over buzzwords',
+    text: 'We measure success in customers, bookings and hours saved, not in features.',
+  },
+  {
+    icon: 'tag',
+    title: 'Honest, fixed pricing',
+    text: 'You know the full price before we start. No hourly bills and no surprise invoices.',
+  },
+  {
+    icon: 'key',
+    title: 'You own everything',
+    text: 'Your code, domain and accounts are in your name. You are never locked in.',
+  },
+] as const;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About Brightstack',
+  url: new URL('/about', SITE_URL).href,
+  mainEntity: {
+    '@type': 'Person',
+    name: 'Saad Shakir',
+    jobTitle: 'Founder',
+    description: 'Software engineer from Multan with research experience at LUMS.',
+    worksFor: { '@type': 'Organization', name: 'Brightstack', url: SITE_URL },
+  },
+};
+---
+
+<BaseLayout title="About" description={description} image="/og/about.png" jsonLd={jsonLd}>
+  <Section>
+    <SectionHeading
+      as="h1"
+      label="About Brightstack"
+      title="Good technology, made simple for small businesses"
+      subtitle="We're a small, focused team helping restaurants, shops, clothing brands, service businesses and startups across the UK and Pakistan grow with tools that just work."
+    />
+  </Section>
+
+  <!-- Founder story -->
+  <Section bordered>
+    <div class="founder" data-reveal-stagger>
+      <figure class="founder__photo">
+        {
+          founderPhoto ? (
+            <Image
+              src={founderPhoto}
+              alt="Saad Shakir, founder of Brightstack"
+              widths={[400, 700, 900]}
+              sizes="(min-width: 900px) 400px, 80vw"
+              loading="eager"
+            />
+          ) : (
+            <div class="founder__placeholder" role="img" aria-label="Saad Shakir, founder of Brightstack">
+              <span aria-hidden="true">SS</span>
+            </div>
+          )
+        }
+        <figcaption>
+          <span class="founder__name">Saad Shakir</span>
+          <span class="founder__role">Founder &amp; software engineer</span>
+        </figcaption>
+      </figure>
+
+      <div class="founder__story">
+        <p class="kicker">The founder</p>
+        <h2>Hi, I'm Saad.</h2>
+        <p>
+          I'm a software engineer from Multan. My research experience at LUMS taught me something
+          I use every day: understand the problem properly before you build anything.
+        </p>
+        <p>
+          Over the years I kept seeing the same thing. Great businesses, with great products and
+          hard-working owners, were losing customers to competitors who simply had better
+          websites, faster replies and smarter systems.
+        </p>
+        <p>
+          The technology to fix that already exists. It just wasn't reaching the people who needed
+          it most. Brightstack is how I'm changing that.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Why we started -->
+  <Section bordered>
+    <div class="why" data-reveal-stagger>
+      <SectionHeading label="Our story" title="Why we started Brightstack" />
+      <div class="why__body">
+        <p>
+          Small businesses were stuck with two bad options. Expensive agencies that talk in jargon
+          and charge by the hour. Or cheap freelancers who disappear the week after launch.
+        </p>
+        <p>
+          We started Brightstack to be the third option: people who actually build the thing,
+          explain it in plain language, charge a fair fixed price, and stay around afterwards.
+        </p>
+        <p class="why__pull">
+          Smart technology shouldn't be a luxury for big companies.
+          <span class="gradient-text">Every business deserves it.</span>
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Mission -->
+  <Section bordered>
+    <div class="mission" data-reveal>
+      <p class="kicker">Our mission</p>
+      <p class="mission__text">
+        To give every small business the same smart technology big companies use: explained
+        simply, priced fairly, and built to bring real growth.
+      </p>
+    </div>
+  </Section>
+
+  <!-- Values -->
+  <Section bordered>
+    <SectionHeading label="Our values" title="What we stand for" />
+    <ul class="values plain-list" data-reveal-stagger>
+      {
+        values.map((v) => (
+          <li class="value spotlight">
+            <IconTile name={v.icon} />
+            <h3>{v.title}</h3>
+            <p>{v.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <CTA
+    heading="Let's build something that helps your business grow"
+    text="Tell us what's slowing you down. You'll talk to the person who builds it, and the first consultation is free."
+    whatsappLabel="Get a free consultation"
+  />
+</BaseLayout>
+
+<style>
+  .kicker {
+    margin: 0 0 10px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* Founder */
+  .founder {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+  }
+  @media (min-width: 860px) {
+    .founder {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 64px;
+    }
+  }
+  .founder__photo {
+    margin: 0;
+    width: 100%;
+    max-width: 400px;
+  }
+  .founder__photo :global(img),
+  .founder__placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+  }
+  .founder__placeholder {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background:
+      radial-gradient(80% 60% at 30% 20%, color-mix(in srgb, var(--brand-cyan) 30%, transparent), transparent 70%),
+      radial-gradient(80% 60% at 80% 90%, color-mix(in srgb, var(--brand-violet) 35%, transparent), transparent 70%),
+      var(--surface);
+    border: 1px solid var(--border);
+  }
+  .founder__placeholder span {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(72px, 12vw, 120px);
+    letter-spacing: -0.04em;
+    color: var(--text);
+    opacity: 0.9;
+  }
+  .founder__photo figcaption {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .founder__name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .founder__role {
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .founder__story h2 {
+    margin: 0 0 20px;
+  }
+  .founder__story p:not(.kicker) {
+    margin: 0 0 16px;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+
+  /* Why */
+  .why {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 900px) {
+    .why {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 64px;
+    }
+  }
+  .why__body p {
+    margin: 0 0 16px;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  .why__body .why__pull {
+    margin-top: 28px;
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(22px, 2.8vw, 28px);
+    line-height: 1.3;
+  }
+
+  /* Mission */
+  .mission {
+    max-width: 900px;
+  }
+  .mission__text {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: clamp(26px, 3.6vw, 40px);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  /* Values */
+  .values {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .values {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1080px) {
+    .values {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .value {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .value h3 {
+    margin: 6px 0 0;
+    font-size: clamp(19px, 1.6vw, 21px);
+    line-height: 1.3;
+  }
+  .value p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+</style>

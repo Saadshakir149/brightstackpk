@@ -1,0 +1,462 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import Breadcrumbs from '@components/Breadcrumbs.astro';
+import CheckList from '@components/CheckList.astro';
+import CTA from '@components/CTA.astro';
+import Button from '@components/Button.astro';
+import { SITE_URL } from '@config';
+import { place } from '@lib/work';
+import { breadcrumbJsonLd } from '@lib/seo';
+
+export async function getStaticPaths() {
+  const work = (await getCollection('work', ({ data }) => !data.draft)).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  // Each project links to the next one, wrapping around at the end.
+  return work.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, next: work.length > 1 ? work[(i + 1) % work.length] : undefined },
+  }));
+}
+
+const { entry, next } = Astro.props;
+const d = entry.data;
+const where = place(d);
+const hasBody = Boolean(entry.body?.trim());
+const { Content } = await render(entry);
+
+const crumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Work', href: '/work' },
+  { label: d.client, href: `/work/${entry.id}` },
+];
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    headline: d.title,
+    description: d.summary,
+    about: [d.client, where].filter(Boolean).join(', '),
+    creator: { '@type': 'Organization', name: 'Brightstack', url: SITE_URL },
+  },
+  breadcrumbJsonLd(crumbs),
+];
+---
+
+<BaseLayout
+  title={`${d.client} case study`}
+  description={d.summary}
+  path={`/work/${entry.id}`}
+  image={`/og/work-${entry.id}.png`}
+  type="article"
+  jsonLd={jsonLd}
+>
+  <Section>
+    {
+      d.placeholder && (
+        <p class="sample-note" role="note">
+          <strong>Sample case study.</strong> The story, numbers, quote and images on this page are
+          placeholders and will be replaced with the real project.
+        </p>
+      )
+    }
+
+    <Breadcrumbs crumbs={crumbs} />
+
+    <header class="head">
+      <p class="eyebrow">
+        {d.client}{where && <span class="eyebrow__place"> &middot; {where}</span>}
+      </p>
+      <h1>{d.title}</h1>
+      <p class="summary">{d.summary}</p>
+      <ul class="tags plain-list" aria-label="Services">
+        {d.services.map((s) => <li>{s}</li>)}
+      </ul>
+      {
+        d.liveUrl && (
+          <Button href={d.liveUrl} external variant="secondary" class="head__live">
+            Visit the live site <span class="nudge" aria-hidden="true">&#8599;</span>
+            <span class="sr-only"> (opens in a new tab)</span>
+          </Button>
+        )
+      }
+    </header>
+
+    <div class="cover">
+      <Image
+        src={d.image}
+        alt={d.imageAlt}
+        widths={[600, 1000, 1400]}
+        sizes="(min-width: 1240px) 1160px, calc(100vw - 40px)"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+
+    {
+      d.results.length > 0 && (
+        <section class="results" aria-labelledby="results-title">
+          <h2 id="results-title" class="sr-only">Results</h2>
+          <ul class="results__list plain-list" data-reveal-stagger>
+            {d.results.map((r) => (
+              <li>
+                <span class="results__value gradient-text">{r.value}</span>
+                <span class="results__label">{r.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </Section>
+
+  <!-- Challenge + solution -->
+  <Section bordered>
+    <div class="story" data-reveal-stagger>
+      <div>
+        <p class="kicker">The challenge</p>
+        <h2 class="story__h">What they needed</h2>
+        <p class="story__text">{d.challenge}</p>
+      </div>
+      <div class="story__solution">
+        <p class="kicker">The solution</p>
+        <h2 class="story__h">What we did</h2>
+        <CheckList items={d.solution} />
+      </div>
+    </div>
+    {
+      hasBody && (
+        <div class="prose">
+          <Content />
+        </div>
+      )
+    }
+  </Section>
+
+  <!-- Gallery -->
+  {
+    d.gallery.length > 0 && (
+      <Section bordered>
+        <h2 class="section-h">Screenshots</h2>
+        <ul class="gallery plain-list" data-reveal-stagger>
+          {d.gallery.map((g, i) => {
+            // First image spans the row only when the rest pair up evenly.
+            const wide = i === 0 && d.gallery.length % 2 === 1;
+            return (
+            <li class:list={['gallery__item', { 'gallery__item--wide': wide }]}>
+              <Image
+                src={g.src}
+                alt={g.alt}
+                widths={wide ? [600, 1000, 1400] : [400, 700, 1000]}
+                sizes={wide ? '(min-width: 1240px) 1160px, calc(100vw - 40px)' : '(min-width: 760px) 570px, calc(100vw - 40px)'}
+                loading="lazy"
+              />
+            </li>
+            );
+          })}
+        </ul>
+      </Section>
+    )
+  }
+
+  <!-- Testimonial -->
+  {
+    d.testimonial && (
+      <Section bordered>
+        <figure class="quote">
+          <svg class="quote__mark" viewBox="0 0 48 36" width="48" height="36" aria-hidden="true">
+            <path d="M0 36V22C0 9.6 6.4 2.3 19.2 0l2 5.4C13.8 7.4 10.4 11.6 10.2 18H20v18zm28 0V22C28 9.6 34.4 2.3 47.2 0l2 5.4C41.8 7.4 38.4 11.6 38.2 18H48v18z" fill="url(#bs-icon-grad)" />
+          </svg>
+          <blockquote>
+            <p>{d.testimonial.quote}</p>
+          </blockquote>
+          <figcaption>
+            <span class="quote__name">{d.testimonial.name}</span>
+            <span class="quote__role">{d.testimonial.role}</span>
+          </figcaption>
+        </figure>
+      </Section>
+    )
+  }
+
+  <!-- Tech used (small) + next project -->
+  <Section bordered>
+    {
+      d.tech.length > 0 && (
+        <p class="tech">
+          <span class="tech__label">Built with</span>{' '}
+          {d.tech.join(' · ')}
+        </p>
+      )
+    }
+    {
+      next && (
+        <a class="next" href={`/work/${next.id}`}>
+          <span class="next__label">Next project</span>
+          <span class="next__title">{next.data.title}</span>
+          <span class="next__client">
+            {[next.data.client, place(next.data)].filter(Boolean).join(' · ')}
+          </span>
+          <span class="next__arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      )
+    }
+  </Section>
+
+  <CTA
+    heading="Want a project like this?"
+    text="Tell us about your business and what's slowing you down. We'll reply with a simple plan and a fixed quote. The first consultation is free."
+    whatsappLabel="Get a free consultation"
+  />
+</BaseLayout>
+
+<style>
+  .sample-note {
+    margin: 0 0 24px;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    border: 1px dashed color-mix(in srgb, var(--accent) 60%, var(--border));
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .head {
+    max-width: 62ch;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .eyebrow__place {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .head h1 {
+    margin: 0 0 16px;
+  }
+  .summary {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: clamp(18px, 2.2vw, 21px);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .head :global(.head__live) {
+    margin-top: 24px;
+  }
+  .tags li {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .cover {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: var(--surface);
+  }
+  .cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .results {
+    margin-top: 28px;
+  }
+  .results__list {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .results__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .results__list li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .results__value {
+    align-self: flex-start;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(40px, 5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .results__label {
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  .kicker {
+    margin: 0 0 8px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .story {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 900px) {
+    .story {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 56px;
+      align-items: start;
+    }
+  }
+  .story__h {
+    margin: 0 0 16px;
+    font-size: clamp(26px, 3vw, 34px);
+  }
+  .story__text {
+    margin: 0;
+    color: var(--muted);
+  }
+  .story__solution {
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .prose {
+    margin-top: 40px;
+    max-width: 68ch;
+    color: var(--muted);
+  }
+
+  .section-h {
+    margin: 0 0 24px;
+    font-size: clamp(26px, 3vw, 34px);
+  }
+  .gallery {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 760px) {
+    .gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .gallery__item--wide {
+      grid-column: 1 / -1;
+    }
+  }
+  .gallery__item {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: var(--surface);
+  }
+  .gallery__item :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .quote {
+    margin: 0 auto;
+    max-width: 760px;
+    text-align: center;
+  }
+  .quote__mark {
+    margin: 0 auto 20px;
+  }
+  .quote blockquote {
+    margin: 0;
+  }
+  .quote blockquote p {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .quote figcaption {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .quote__name {
+    font-weight: 600;
+  }
+  .quote__role {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .tech {
+    margin: 0 0 28px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .tech__label {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .next {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 28px 72px 28px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .next:hover {
+    border-color: var(--brand-violet);
+    transform: translateY(-2px);
+  }
+  .next__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .next__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(22px, 2.6vw, 28px);
+    line-height: 1.25;
+  }
+  .next__client {
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .next__arrow {
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 26px;
+    color: var(--accent);
+  }
+</style>

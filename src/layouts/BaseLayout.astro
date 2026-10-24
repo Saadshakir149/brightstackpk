@@ -1,0 +1,123 @@
+---
+// Self-hosted fonts — only the weights we actually use, latin subset.
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/outfit/latin-600.css';
+import '@fontsource/outfit/latin-700.css';
+// Preload the two fonts used above the fold (headings + body) so they're ready
+// before first paint: no font-swap re-layouts of the page while loading.
+import outfit700 from '@fontsource/outfit/files/outfit-latin-700-normal.woff2?url';
+import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
+
+import '@styles/global.css';
+
+import Seo from '@components/Seo.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import BottomTabBar from '@components/BottomTabBar.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+}
+const { title, description, path, image, type, jsonLd, noindex } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href={outfit700} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={inter400} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/brand/logo-mark.svg" type="image/svg+xml" />
+    <link rel="icon" href="/brand/icon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0A0E1A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FAFBFF" media="(prefers-color-scheme: light)" />
+    <meta name="generator" content={Astro.generator} />
+
+    {/* No-flash theme: set data-theme before first paint. */}
+    <script is:inline>
+      (function () {
+        document.documentElement.classList.add('js');
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+
+    <Seo
+      title={title}
+      description={description}
+      path={path}
+      image={image}
+      type={type}
+      jsonLd={jsonLd}
+      noindex={noindex}
+    />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    {/* Shared, theme-aware gradient for IconTile strokes. Not display:none,
+        so references to it render in every browser. */}
+    <svg class="svg-defs" aria-hidden="true" focusable="false" width="0" height="0">
+      <defs>
+        <linearGradient id="bs-icon-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="24" y2="24">
+          <stop offset="0" style="stop-color: var(--icon-stop-1)" />
+          <stop offset="0.5" style="stop-color: var(--icon-stop-2)" />
+          <stop offset="1" style="stop-color: var(--icon-stop-3)" />
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <BottomTabBar />
+
+    {/* Reveals, spotlight, magnetic buttons, parallax, process line. */}
+    <script>
+      import '../scripts/motion';
+    </script>
+  </body>
+</html>
+
+<style>
+  .svg-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  main {
+    /* Clear the fixed header (72px) with breathing room. */
+    padding-top: 92px;
+    min-height: 60vh;
+  }
+  /* On mobile, clear the fixed bottom tab bar so nothing is covered. */
+  @media (max-width: 860px) {
+    body {
+      padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+</style>

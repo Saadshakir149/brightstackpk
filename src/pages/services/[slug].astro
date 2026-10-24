@@ -1,0 +1,317 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import Breadcrumbs from '@components/Breadcrumbs.astro';
+import IconTile from '@components/IconTile.astro';
+import CheckList from '@components/CheckList.astro';
+import PriceTimeline from '@components/PriceTimeline.astro';
+import CaseStudyCard from '@components/CaseStudyCard.astro';
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import CTA from '@components/CTA.astro';
+import { SITE_URL } from '@config';
+import { place } from '@lib/work';
+import { breadcrumbJsonLd } from '@lib/seo';
+
+export async function getStaticPaths() {
+  const services = await getCollection('services', ({ data }) => !data.draft);
+  return services.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+
+const others = (await getCollection('services', ({ data }) => !data.draft))
+  .filter((s) => s.id !== entry.id)
+  .sort((a, b) => a.data.order - b.data.order);
+const related = (await getCollection('work', ({ data }) => !data.draft))
+  .filter((w) => w.data.categories.includes(d.workCategory))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+
+const message = `Hi Brightstack, I'd like a free consultation about ${d.title}.`;
+const crumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Services', href: '/services' },
+  { label: d.title, href: `/services/${entry.id}` },
+];
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: d.title,
+    description: d.summary,
+    serviceType: d.title,
+    provider: { '@type': 'Organization', name: 'Brightstack', url: SITE_URL },
+    areaServed: ['GB', 'PK'],
+  },
+  breadcrumbJsonLd(crumbs),
+];
+---
+
+<BaseLayout
+  title={`${d.title} for small businesses`}
+  description={`${d.summary} ${d.tagline} For businesses in the UK and Pakistan.`}
+  path={`/services/${entry.id}`}
+  image={`/og/services-${entry.id}.png`}
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <Section>
+    <Breadcrumbs crumbs={crumbs} />
+    <div class="hero">
+      <IconTile name={d.icon} size="lg" />
+      <SectionHeading as="h1" label="Service" title={d.title} subtitle={`${d.tagline} ${d.summary}`} />
+      <div class="hero__actions">
+        <WhatsAppButton variant="primary" label="Get a free consultation" message={message} />
+        <Button href="#pricing" variant="secondary">Timeline &amp; pricing</Button>
+      </div>
+    </div>
+  </Section>
+
+  <!-- Problem -->
+  <Section bordered>
+    <div class="problem">
+      <h2 class="problem__label">Sound familiar?</h2>
+      <p class="problem__text">{d.problem}</p>
+    </div>
+  </Section>
+
+  <!-- What we build + outcomes -->
+  <Section bordered>
+    <div class="split">
+      <div>
+        <h2 class="h2-sm">What we build</h2>
+        <CheckList items={d.includes} variant="dot" class="muted-list" />
+      </div>
+      <div class="outcomes">
+        <h2 class="h2-sm">What you get</h2>
+        <CheckList items={d.outcomes} />
+      </div>
+    </div>
+  </Section>
+
+  <!-- Examples -->
+  <Section bordered>
+    <SectionHeading label="Examples" title="What this looks like in real life" />
+    <ul class="examples plain-list" data-reveal-stagger>
+      {d.examples.map((ex) => <li>{ex}</li>)}
+    </ul>
+  </Section>
+
+  <!-- Timeline & pricing -->
+  <Section bordered id="pricing">
+    <div class="split split--pricing">
+      <SectionHeading
+        label="Timeline & pricing"
+        title="Clear from day one"
+        subtitle="You get a simple plan and one fixed price before any work starts. These starting prices help you plan; your quote depends on exactly what you need."
+      />
+      <PriceTimeline timeline={d.timeline} priceFrom={d.priceFrom} />
+    </div>
+  </Section>
+
+  <!-- Related work -->
+  {
+    related.length > 0 && (
+      <Section bordered>
+        <SectionHeading label="Related work" title={`${d.title} we've delivered`} />
+        <div class="cards" data-reveal-stagger>
+          {related.map((w) => (
+            <CaseStudyCard
+              client={w.data.client}
+              location={place(w.data)}
+              result={w.data.result}
+              image={w.data.image}
+              imageAlt={w.data.imageAlt}
+              href={`/work/${w.id}`}
+            />
+          ))}
+        </div>
+      </Section>
+    )
+  }
+
+  <!-- Other services -->
+  <Section bordered>
+    <h2 class="h2-sm">Other ways we can help</h2>
+    <ul class="others plain-list" data-reveal-stagger>
+      {
+        others.map((o) => (
+          <li>
+            <a class="other spotlight" href={`/services/${o.id}`}>
+              <IconTile name={o.data.icon} />
+              <span class="other__text">
+                <span class="other__title">{o.data.title}</span>
+                <span class="other__summary">{o.data.summary}</span>
+              </span>
+              <span class="other__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <CTA
+    heading={`Let's talk about ${d.title}`}
+    text="Tell us about your business and what's slowing you down. We'll reply with a simple plan and a fixed quote. The first consultation is free."
+    whatsappLabel="Get a free consultation"
+  />
+</BaseLayout>
+
+<style>
+  .hero {
+    max-width: 760px;
+  }
+  .hero :global(.icon-tile) {
+    margin-bottom: 24px;
+  }
+  .hero :global(.section-heading) {
+    margin-bottom: 28px;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .problem {
+    max-width: 860px;
+  }
+  .problem__label {
+    margin: 0 0 14px;
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0;
+  }
+  .problem__text {
+    margin: 0;
+    font-family: var(--font-heading);
+    text-wrap: balance;
+    font-size: clamp(24px, 3.2vw, 36px);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .h2-sm {
+    font-size: clamp(24px, 2.6vw, 30px);
+    margin: 0 0 20px;
+  }
+  .split {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 900px) {
+    .split {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 56px;
+    }
+    .split--pricing {
+      align-items: center;
+    }
+  }
+  .split :global(.muted-list) {
+    color: var(--muted);
+  }
+  .outcomes {
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .split--pricing :global(.section-heading) {
+    margin-bottom: 0;
+  }
+
+  .examples {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .examples {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .examples li {
+    padding: 22px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand-blue);
+    border-radius: var(--radius);
+    line-height: 1.55;
+  }
+
+  .cards {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 960px) {
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .others {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 760px) {
+    .others {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .other {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    height: 100%;
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .other:hover {
+    border-color: var(--brand-blue);
+    transform: translateY(-2px);
+  }
+  .other__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+  .other__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .other__summary {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .other__arrow {
+    color: var(--accent);
+    font-size: 20px;
+  }
+</style>

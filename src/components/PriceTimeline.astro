@@ -1,0 +1,83 @@
+---
+interface Props {
+  timeline: string;
+  priceFrom: { gbp: string; pkr: string };
+}
+const { timeline, priceFrom } = Astro.props;
+---
+
+<div class="price-timeline">
+  <!-- A <dl> may only contain dt/dd groups, so the note sits outside it. -->
+  <dl class="price-timeline__list">
+    <div class="price-timeline__item">
+      <dt>Typical timeline</dt>
+      <dd>{timeline}</dd>
+    </div>
+    <div class="price-timeline__item">
+      <dt>Starting from</dt>
+      <dd class="price-timeline__prices">
+        <span><span class="price-timeline__market">UK</span> {priceFrom.gbp}</span>
+        <span><span class="price-timeline__market">Pakistan</span> {priceFrom.pkr}</span>
+      </dd>
+    </div>
+  </dl>
+  <p class="price-timeline__note">Every project gets a fixed quote after a free call. No surprises.</p>
+</div>
+
+<style>
+  .price-timeline__list {
+    margin: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .price-timeline {
+    margin: 0;
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .price-timeline__item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  dt {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  dd {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .price-timeline__prices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+  .price-timeline__prices > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .price-timeline__market {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .price-timeline__note {
+    margin: 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 15px;
+    color: var(--muted);
+  }
+</style>

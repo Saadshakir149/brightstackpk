@@ -1,0 +1,16 @@
+{
+  // Type-checks Cloudflare Pages Functions against the Workers runtime types
+  // (kept separate from the Astro/DOM project). Run: npm run check:functions
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts", "../src/lib/contact.ts"]
+}

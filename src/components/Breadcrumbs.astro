@@ -1,0 +1,62 @@
+---
+import type { Crumb } from '@lib/seo';
+
+interface Props {
+  /** Trail including the current page last. */
+  crumbs: Crumb[];
+}
+const { crumbs } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="plain-list">
+    {
+      crumbs.map((c, i) =>
+        i === crumbs.length - 1 ? (
+          <li aria-current="page">{c.label}</li>
+        ) : (
+          <li>
+            <a href={c.href}>{c.label}</a>
+            <span class="breadcrumbs__sep" aria-hidden="true">/</span>
+          </li>
+        ),
+      )
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .breadcrumbs li {
+    display: inline-flex;
+    align-items: center;
+  }
+  .breadcrumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--border);
+  }
+  .breadcrumbs a:hover {
+    color: var(--text);
+    text-decoration-color: currentColor;
+  }
+  .breadcrumbs__sep {
+    margin: 0 10px;
+    opacity: 0.6;
+  }
+  .breadcrumbs [aria-current='page'] {
+    color: var(--text);
+    font-weight: 500;
+  }
+</style>

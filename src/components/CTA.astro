@@ -1,0 +1,131 @@
+---
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import { EMAIL } from '@config';
+
+interface Props {
+  heading?: string;
+  text?: string;
+  /** Second action: link to the contact page, or show the email address. */
+  secondary?: 'consultation' | 'email';
+  whatsappLabel?: string;
+}
+const {
+  heading = 'Ready to grow?',
+  text = "Tell us what's slowing you down. We'll show you a simple plan to get more customers and do less manual work. Free, no pressure.",
+  secondary = 'consultation',
+  whatsappLabel = 'WhatsApp us',
+} = Astro.props;
+---
+
+<section class="cta">
+  <div class="container">
+    <div class="cta__card" data-play-in-view>
+      <h2>{heading}</h2>
+      <p>{text}</p>
+      <div class="cta__actions">
+        <WhatsAppButton variant="primary" label={whatsappLabel} />
+        {
+          secondary === 'email' ? (
+            <Button href={`mailto:${EMAIL}`} variant="secondary" class="cta__email">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2.5" />
+                <path d="M3.5 6.5l8.5 6.5 8.5-6.5" />
+              </svg>
+              {EMAIL}
+            </Button>
+          ) : (
+            <Button href="/contact" variant="secondary">Free consultation</Button>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding-block: clamp(48px, 8vw, 96px);
+  }
+  .cta__card {
+    position: relative;
+    isolation: isolate;
+    text-align: center;
+    background:
+      radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--brand-blue) 18%, transparent), transparent 60%),
+      var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(28px, 6vw, 64px) clamp(20px, 6vw, 64px);
+  }
+  /* A slow light travelling around the border (on the edge, never behind text). */
+  .cta__card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--cta-angle),
+      transparent 0deg,
+      var(--brand-cyan) 40deg,
+      var(--brand-violet) 90deg,
+      transparent 140deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cta__card::before {
+      animation: cta-orbit 7s linear infinite;
+      animation-play-state: paused;
+    }
+    .cta__card:global(.is-playing)::before {
+      animation-play-state: running;
+    }
+  }
+  @keyframes cta-orbit {
+    to {
+      --cta-angle: 360deg;
+    }
+  }
+  @property --cta-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+  .cta__card h2 {
+    margin: 0 0 12px;
+  }
+  .cta__card p {
+    color: var(--muted);
+    max-width: 52ch;
+    margin: 0 auto 28px;
+  }
+  .cta__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  /* Long email address must never overflow on small phones. */
+  .cta__actions :global(.cta__email) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 480px) {
+    .cta__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .cta__actions :global(.btn) {
+      padding-inline: 16px;
+    }
+  }
+</style>

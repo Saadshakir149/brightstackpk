@@ -1,0 +1,176 @@
+---
+// Slow, endless band of text. Pauses off-screen, on hover, and via a real
+// pause button (WCAG 2.2.2). Under reduced motion it becomes a static list.
+interface Props {
+  label: string;
+  items: string[];
+  /** Seconds for one full loop. */
+  speed?: number;
+}
+const { label, items, speed = 45 } = Astro.props;
+---
+
+<section class="marquee" aria-label={label} data-marquee>
+  <div class="container marquee__head">
+    <p class="marquee__label">{label}</p>
+    <button type="button" class="marquee__toggle" aria-pressed="false" data-marquee-toggle>
+      <svg class="marquee__icon marquee__icon--pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+      </svg>
+      <svg class="marquee__icon marquee__icon--play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+      </svg>
+      <span class="sr-only">Pause the moving list</span>
+    </button>
+  </div>
+  <div class="marquee__viewport" data-play-in-view style={`--marquee-speed: ${speed}s`}>
+    <ul class="marquee__track plain-list">
+      {items.map((item) => <li>{item}</li>)}
+    </ul>
+    <ul class="marquee__track plain-list" aria-hidden="true">
+      {items.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+</section>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-marquee]')) {
+    const btn = root.querySelector<HTMLButtonElement>('[data-marquee-toggle]');
+    const label = btn?.querySelector('.sr-only');
+    btn?.addEventListener('click', () => {
+      const paused = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(paused));
+      root.classList.toggle('is-user-paused', paused);
+      if (label) label.textContent = paused ? 'Play the moving list' : 'Pause the moving list';
+    });
+  }
+</script>
+
+<style>
+  .marquee {
+    padding-block: 28px 32px;
+    border-block: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .marquee__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .marquee__label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .marquee__toggle {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+  }
+  .marquee__toggle:hover {
+    color: var(--text);
+    border-color: var(--brand-blue);
+  }
+  .marquee__icon--play,
+  .marquee.is-user-paused .marquee__icon--pause {
+    display: none;
+  }
+  .marquee.is-user-paused .marquee__icon--play {
+    display: block;
+  }
+
+  .marquee__viewport {
+    display: flex;
+    gap: 3rem;
+    width: 100%;
+    overflow: hidden;
+    /* Soft fade at both edges. */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 3rem;
+    min-width: 100%;
+    justify-content: space-around;
+  }
+  .marquee__track li {
+    display: inline-flex;
+    align-items: center;
+    gap: 3rem;
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: clamp(20px, 2.4vw, 28px);
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  /* Gradient dot between items. */
+  .marquee__track li::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-gradient);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee__track {
+      animation: marquee var(--marquee-speed, 45s) linear infinite;
+      animation-play-state: paused;
+    }
+    /* Only moves while on screen, and not while hovered or paused by the user. */
+    .marquee__viewport.is-playing .marquee__track {
+      animation-play-state: running;
+    }
+    .marquee__viewport:hover .marquee__track,
+    .marquee.is-user-paused .marquee__track {
+      animation-play-state: paused;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(calc(-100% - 3rem));
+    }
+  }
+
+  /* Reduced motion: a calm, wrapped static list instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__toggle,
+    .marquee__track[aria-hidden='true'] {
+      display: none;
+    }
+    .marquee__viewport {
+      -webkit-mask-image: none;
+      mask-image: none;
+      padding-inline: var(--gutter);
+      max-width: var(--maxw);
+      margin-inline: auto;
+    }
+    .marquee__track {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      min-width: 0;
+      gap: 12px 28px;
+    }
+    .marquee__track li {
+      gap: 28px;
+      white-space: normal;
+    }
+  }
+</style>

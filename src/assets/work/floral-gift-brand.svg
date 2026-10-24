@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
+  <!-- Placeholder: replace with the floral brand's logo and Instagram grid. -->
+  <defs>
+    <linearGradient id="f-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A0F2E" />
+      <stop offset="1" stop-color="#2A1238" />
+    </linearGradient>
+    <radialGradient id="f-petal" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFD1E8" />
+      <stop offset="1" stop-color="#E879C6" />
+    </radialGradient>
+    <linearGradient id="f-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A855F7" />
+      <stop offset="1" stop-color="#E879C6" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="750" fill="url(#f-bg)" />
+  <circle cx="1060" cy="660" r="260" fill="#E879C6" opacity="0.14" />
+  <!-- phone with instagram grid -->
+  <rect x="660" y="70" width="340" height="610" rx="44" fill="#0D0A16" />
+  <rect x="676" y="86" width="308" height="578" rx="32" fill="#FFF7FB" />
+  <circle cx="726" cy="146" r="28" fill="url(#f-acc)" />
+  <rect x="768" y="134" width="120" height="12" rx="6" fill="#2A1238" />
+  <rect x="768" y="154" width="80" height="10" rx="5" fill="#B9A6C4" />
+  <g>
+    <rect x="690" y="200" width="94" height="94" rx="6" fill="#F7D6EA" />
+    <rect x="788" y="200" width="94" height="94" rx="6" fill="#EBD9FF" />
+    <rect x="886" y="200" width="84" height="94" rx="6" fill="#F7D6EA" />
+    <rect x="690" y="298" width="94" height="94" rx="6" fill="#EBD9FF" />
+    <rect x="788" y="298" width="94" height="94" rx="6" fill="#F7D6EA" />
+    <rect x="886" y="298" width="84" height="94" rx="6" fill="#EBD9FF" />
+    <rect x="690" y="396" width="94" height="94" rx="6" fill="#F7D6EA" />
+    <rect x="788" y="396" width="94" height="94" rx="6" fill="#EBD9FF" />
+    <rect x="886" y="396" width="84" height="94" rx="6" fill="#F7D6EA" />
+    <circle cx="737" cy="247" r="22" fill="url(#f-petal)" />
+    <circle cx="835" cy="345" r="22" fill="url(#f-petal)" />
+    <circle cx="928" cy="247" r="18" fill="url(#f-petal)" />
+    <circle cx="737" cy="443" r="18" fill="url(#f-petal)" />
+    <circle cx="928" cy="443" r="22" fill="url(#f-petal)" />
+  </g>
+  <!-- logo card -->
+  <rect x="180" y="190" width="400" height="370" rx="26" fill="#FFF7FB" />
+  <!-- flower mark -->
+  <g transform="translate(380 330)">
+    <circle cx="0" cy="-42" r="30" fill="url(#f-petal)" />
+    <circle cx="40" cy="-13" r="30" fill="url(#f-petal)" />
+    <circle cx="25" cy="34" r="30" fill="url(#f-petal)" />
+    <circle cx="-25" cy="34" r="30" fill="url(#f-petal)" />
+    <circle cx="-40" cy="-13" r="30" fill="url(#f-petal)" />
+    <circle cx="0" cy="0" r="22" fill="url(#f-acc)" />
+  </g>
+  <rect x="270" y="440" width="220" height="22" rx="11" fill="#2A1238" />
+  <rect x="305" y="478" width="150" height="12" rx="6" fill="#B9A6C4" />
+</svg>

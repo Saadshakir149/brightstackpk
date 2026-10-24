@@ -1,0 +1,107 @@
+---
+// Toggles [data-theme] on <html> and persists the choice.
+// The no-flash initial theme is set by an inline script in BaseLayout.
+---
+
+<button
+  id="theme-toggle"
+  class="theme-toggle"
+  type="button"
+  aria-label="Toggle light and dark theme"
+  title="Toggle theme"
+>
+  <svg class="icon icon--sun" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+    <circle cx="12" cy="12" r="4" fill="currentColor" />
+    <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="12" y1="2" x2="12" y2="4" />
+      <line x1="12" y1="20" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="4" y2="12" />
+      <line x1="20" y1="12" x2="22" y2="12" />
+      <line x1="4.9" y1="4.9" x2="6.3" y2="6.3" />
+      <line x1="17.7" y1="17.7" x2="19.1" y2="19.1" />
+      <line x1="4.9" y1="19.1" x2="6.3" y2="17.7" />
+      <line x1="17.7" y1="6.3" x2="19.1" y2="4.9" />
+    </g>
+  </svg>
+  <svg class="icon icon--moon" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+    <path
+      d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+      fill="currentColor"
+    />
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .theme-toggle:hover {
+    border-color: var(--brand-blue);
+  }
+  /* Show the icon for the theme you'd switch TO. */
+  .icon--sun {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .icon--sun,
+  :global(:root:not([data-theme='light'])) .icon--sun {
+    display: block;
+  }
+  :global(:root[data-theme='dark']) .icon--moon,
+  :global(:root:not([data-theme='light'])) .icon--moon {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .icon--moon {
+    display: block;
+  }
+  :global(:root[data-theme='light']) .icon--sun {
+    display: none;
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('theme-toggle');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const current =
+      root.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: light)').matches
+        ? 'light'
+        : 'dark');
+    const next = current === 'dark' ? 'light' : 'dark';
+    const apply = () => {
+      root.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        /* storage unavailable — ignore */
+      }
+    };
+
+    // The new theme spreads out in a circle from the button (where supported).
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) {
+      apply();
+      return;
+    }
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    root.style.setProperty('--vt-x', `${x}px`);
+    root.style.setProperty('--vt-y', `${y}px`);
+    root.style.setProperty('--vt-r', `${radius}px`);
+    root.classList.add('theme-switching');
+    document
+      .startViewTransition(apply)
+      .finished.finally(() => root.classList.remove('theme-switching'));
+  });
+</script>

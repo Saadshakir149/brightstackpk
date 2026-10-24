@@ -1,0 +1,759 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import ServiceCard from '@components/ServiceCard.astro';
+import CaseStudyCard from '@components/CaseStudyCard.astro';
+import IconTile from '@components/IconTile.astro';
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import CTA from '@components/CTA.astro';
+import Marquee from '@components/Marquee.astro';
+import { SITE_DESCRIPTION } from '@config';
+import { place } from '@lib/work';
+
+const services = (await getCollection('services', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const work = (await getCollection('work', ({ data }) => !data.draft))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+
+const problems = [
+  {
+    icon: 'search',
+    title: "Customers can't find you online",
+    text: "People search for what you sell every day. If you don't show up, they buy from someone else.",
+  },
+  {
+    icon: 'clipboard',
+    title: 'Orders and bookings are stuck in WhatsApp chats and notebooks',
+    text: 'Messages get missed, details get lost, and you spend your evenings chasing them.',
+  },
+  {
+    icon: 'clock',
+    title: 'Hours lost on repetitive work every week',
+    text: 'Answering the same questions and copying the same details eats time you could spend growing.',
+  },
+  {
+    icon: 'megaphone',
+    title: "Social media posts that don't bring sales",
+    text: 'You post, a few people like it, and the phone stays quiet.',
+  },
+] as const;
+
+const steps = [
+  {
+    title: 'Free call',
+    text: "Tell us about your business and what's getting in the way. We listen first, then suggest what will help most.",
+  },
+  {
+    title: 'Clear plan and fixed quote',
+    text: 'You get a simple plan in plain English and one fixed price. No hidden extras, no hourly bills.',
+  },
+  {
+    title: 'Build with weekly updates',
+    text: 'We build while you run your business. Every week you see progress and can share feedback.',
+  },
+  {
+    title: 'Launch and support',
+    text: 'We launch, show you how everything works, and stay on hand whenever you need help.',
+  },
+];
+
+const reasons = [
+  {
+    icon: 'chat',
+    title: 'You talk to the builder, not a salesperson',
+    text: 'The person you speak to is the person building your project. Nothing gets lost in translation.',
+  },
+  {
+    icon: 'tag',
+    title: 'Fixed prices, no surprises',
+    text: "You know the full cost before we start. If the plan doesn't change, the price doesn't either.",
+  },
+  {
+    icon: 'key',
+    title: 'You own your code, domain and accounts',
+    text: 'Everything is set up in your name. If you ever move on, you take it all with you.',
+  },
+  {
+    icon: 'globe',
+    title: 'International quality at fair prices',
+    text: 'Work that meets UK standards, at prices that make sense for a growing business.',
+  },
+] as const;
+
+const faqs = [
+  {
+    q: 'How much does it cost?',
+    a: "It depends on what you need, so every project gets a fixed quote after a free call. You'll know the full price before any work starts. No hourly billing, no surprise invoices. Working with a small budget? Tell us, and we'll suggest the best place to start.",
+  },
+  {
+    q: 'How long does it take?',
+    a: "Most business websites take a few weeks. Bigger projects like apps or AI systems take longer. Your plan includes a clear timeline, and you'll get an update every week so you always know where things stand.",
+  },
+  {
+    q: 'Do I need to be technical?',
+    a: "Not at all. Most of our clients aren't. We explain everything in plain language, handle all the technical work, and show you how to use what we build. If you can use WhatsApp, you'll be fine.",
+  },
+  {
+    q: 'Do you work with UK clients?',
+    a: 'Yes. We work with businesses across the UK and Pakistan. We meet on video calls and stay in touch over WhatsApp and email, so distance never slows anything down.',
+  },
+  {
+    q: 'What happens after launch?',
+    a: "We don't disappear. We show you how everything works, fix anything that needs fixing, and stay on hand for updates and improvements. And because you own everything we build, you're never locked in.",
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout title="Websites, apps and AI for small businesses" description={SITE_DESCRIPTION} image="/og/home.png" jsonLd={faqJsonLd}>
+  <!-- 1. HERO -->
+  <section class="hero">
+    <div class="container hero__grid">
+      <div class="hero__copy">
+        <p class="hero__label hero-in" style="--d: 0">Software • AI • Growth</p>
+        <h1 class="hero__title">
+          <span class="hero__line" style="--d: 1">Bright ideas.</span>
+          <span class="hero__line" style="--d: 2"><span class="gradient-text">Smart systems.</span></span>
+          <span class="hero__line" style="--d: 3">Real growth.</span>
+        </h1>
+        <p class="hero__lead hero-in" style="--d: 4">
+          We build websites, apps and AI systems that bring you more customers and save
+          you hours every week, for businesses in the UK and Pakistan.
+        </p>
+        <div class="hero__actions hero-in" style="--d: 5">
+          <WhatsAppButton variant="primary" label="Get a free consultation" />
+          <Button href="/work" variant="secondary">See our work <span class="nudge" aria-hidden="true">&rarr;</span></Button>
+        </div>
+        <ul class="trust hero-in" style="--d: 6" aria-label="Why work with Brightstack">
+          <li>UK • Pakistan</li>
+          <li>Fast delivery</li>
+          <li>You own everything we build</li>
+        </ul>
+      </div>
+
+      <!-- Signature moment: the three brand layers drop in and stack, then
+           drift at different depths with the mouse (motion.ts sets --px/--py). -->
+      <div class="hero__visual" aria-hidden="true" data-parallax data-play-in-view>
+        <div class="hero__glow"></div>
+        <div class="hero__float">
+          <svg class="hero__mark" viewBox="0 0 100 100" width="360" height="360" focusable="false">
+            <defs>
+              <linearGradient id="hero-mark-grad" gradientUnits="userSpaceOnUse" x1="16" y1="11" x2="84" y2="89">
+                <stop offset="0" stop-color="#00D4FF" />
+                <stop offset="0.5" stop-color="#3B5BFF" />
+                <stop offset="1" stop-color="#A855F7" />
+              </linearGradient>
+            </defs>
+            <g fill="url(#hero-mark-grad)" stroke="url(#hero-mark-grad)" stroke-width="6" stroke-linejoin="round">
+              <path class="hero__layer hero__layer--3" d="M16 63 L50 81 L84 63 L84 71 L50 89 L16 71 Z" />
+              <path class="hero__layer hero__layer--2" d="M16 42 L50 60 L84 42 L84 50 L50 68 L16 50 Z" />
+              <path class="hero__layer hero__layer--1" d="M50 11 L84 29 L50 47 L16 29 Z" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Marquee
+    label="Built for growing businesses like"
+    items={[
+      'Restaurants',
+      'Cafés',
+      'Clothing brands',
+      'Salons',
+      'Clinics',
+      'Retail shops',
+      'Online stores',
+      'Service businesses',
+      'Startups',
+      'Accountants',
+      'Law firms',
+      'Gift brands',
+    ]}
+  />
+
+  <!-- 2. PROBLEMS -->
+  <Section bordered>
+    <div data-reveal>
+      <SectionHeading
+        label="The problem"
+        title="Sound familiar?"
+        subtitle="Most small businesses we meet are dealing with at least one of these."
+      />
+    </div>
+    <ul class="grid grid--4 plain-list" data-reveal-stagger>
+      {
+        problems.map((p) => (
+          <li class="tile spotlight">
+            <IconTile name={p.icon} />
+            <h3 class="tile__title">{p.title}</h3>
+            <p class="tile__text">{p.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="bridge" data-reveal>
+      The good news? Every one of these can be fixed, <span class="gradient-text">without you becoming a tech expert.</span>
+    </p>
+  </Section>
+
+  <!-- 3. SERVICES -->
+  <Section bordered>
+    <div data-reveal>
+      <SectionHeading
+        label="Services"
+        title="What we build"
+        subtitle="Three ways we help you win more customers and get time back."
+      />
+    </div>
+    <div class="grid grid--3" data-reveal-stagger>
+      {
+        services.map((s) => (
+          <ServiceCard
+            title={s.data.title}
+            summary={s.data.summary}
+            icon={s.data.icon}
+            outcomes={s.data.outcomes}
+            href={`/services/${s.id}`}
+          />
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- 4. HOW WE WORK -->
+  <Section bordered>
+    <div data-reveal>
+      <SectionHeading
+        label="Our process"
+        title="How we work"
+        subtitle="No surprises and no jargon. Here's exactly what happens when you work with us."
+      />
+    </div>
+    <ol class="grid grid--4 steps plain-list" data-reveal-stagger data-scroll-progress>
+      {
+        steps.map((s, i) => (
+          <li class="step spotlight" data-step>
+            <span class="step__num gradient-text" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 class="tile__title">
+              <span class="sr-only">Step {i + 1}: </span>
+              {s.title}
+            </h3>
+            <p class="tile__text">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <!-- 5. SELECTED WORK -->
+  <Section bordered>
+    <div class="section-top" data-reveal>
+      <SectionHeading
+        label="Selected work"
+        title="Work we're proud of"
+        subtitle="A few recent projects for businesses like yours."
+      />
+      <Button href="/work" variant="ghost" class="section-top__link">See all work</Button>
+    </div>
+    <div class="grid grid--cases" data-reveal-stagger>
+      {
+        work.map((w) => (
+          <CaseStudyCard
+            client={w.data.client}
+            location={place(w.data)}
+            result={w.data.result}
+            image={w.data.image}
+            imageAlt={w.data.imageAlt}
+            href={`/work/${w.id}`}
+          />
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- 6. WHY BRIGHTSTACK -->
+  <Section bordered>
+    <div data-reveal>
+      <SectionHeading
+        label="Why Brightstack"
+        title="Why businesses choose us"
+      />
+    </div>
+    <ul class="grid grid--4 plain-list" data-reveal-stagger>
+      {
+        reasons.map((r) => (
+          <li class="tile spotlight">
+            <IconTile name={r.icon} />
+            <h3 class="tile__title">{r.title}</h3>
+            <p class="tile__text">{r.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <!-- 7. FAQ -->
+  <Section bordered>
+    <div class="faq-layout">
+      <div data-reveal>
+        <SectionHeading
+          label="FAQ"
+          title="Questions, answered"
+          subtitle="Can't see your question? Just ask us on WhatsApp."
+        />
+      </div>
+      <div class="faq" data-reveal>
+        {
+          faqs.map((f) => (
+            <details class="faq__item">
+              <summary class="faq__q">
+                <span>{f.q}</span>
+                <span class="faq__icon" aria-hidden="true" />
+              </summary>
+              <div class="faq__a">
+                <p>{f.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </Section>
+
+  <!-- 8. FINAL CTA -->
+  <CTA
+    heading="Ready to grow? Let's talk."
+    text="Tell us about your business and what's slowing you down. We'll reply with a simple plan. Your first consultation is free."
+    whatsappLabel="Get a free consultation"
+    secondary="email"
+  />
+</BaseLayout>
+
+<style>
+  /* ---------- Shared helpers ---------- */
+  .grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .grid--4,
+    .grid--cases {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 960px) {
+    .grid--3,
+    .grid--cases {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1080px) {
+    .grid--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .tile__title {
+    margin: 6px 0 0;
+    font-size: clamp(19px, 1.6vw, 21px);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .tile__text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ---------- 1. Hero ---------- */
+  .hero {
+    padding-top: clamp(24px, 5vw, 56px);
+    padding-bottom: clamp(48px, 7vw, 88px);
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 48px;
+  }
+  .hero__label {
+    margin: 0 0 20px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+  .hero__title {
+    margin: 0 0 24px;
+  }
+  .hero__line {
+    display: block;
+  }
+  .hero__lead {
+    margin: 0 0 32px;
+    max-width: 54ch;
+    color: var(--muted);
+    font-size: clamp(18px, 2vw, 21px);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    list-style: none;
+    margin: 32px 0 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .trust li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trust li::before {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--brand-gradient);
+  }
+
+  /* Decorative mark: desktop only, in its own column, never behind text. */
+  .hero__visual {
+    display: none;
+  }
+  @media (min-width: 960px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+      gap: 56px;
+    }
+    .hero__visual {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      width: 100%;
+      max-width: 400px;
+      justify-self: end;
+    }
+  }
+  /* Soft glow from a wide radial gradient: no blur filter, which would be
+     re-rasterised on every frame of the breathing animation. */
+  .hero__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--brand-blue) 42%, transparent) 0%,
+      color-mix(in srgb, var(--brand-violet) 20%, transparent) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+  .hero__float {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 78%;
+  }
+  .hero__mark {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  /* Each layer: parallax via `translate` (motion.ts --px/--py, depth in SVG units),
+     intro + hover spread via `transform`. The two properties compose. */
+  .hero__layer {
+    translate: calc(var(--px, 0) * var(--depth) * 1px) calc(var(--py, 0) * var(--depth) * 1px);
+    transition: transform var(--dur-reveal) var(--ease-out-expo);
+  }
+  .hero__layer--1 {
+    --depth: 5;
+  }
+  .hero__layer--2 {
+    --depth: 3.2;
+  }
+  .hero__layer--3 {
+    --depth: 1.6;
+  }
+  /* Hovering the mark gently opens the stack. */
+  @media (hover: hover) {
+    .hero__visual:hover .hero__layer--1 {
+      transform: translateY(-5px);
+    }
+    .hero__visual:hover .hero__layer--3 {
+      transform: translateY(5px);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Intro: layers drop in and stack, bottom first. */
+    .hero__layer {
+      animation: layer-drop 1100ms var(--ease-out-expo) backwards;
+    }
+    .hero__layer--3 {
+      animation-delay: 250ms;
+    }
+    .hero__layer--2 {
+      animation-delay: 400ms;
+    }
+    .hero__layer--1 {
+      animation-delay: 550ms;
+    }
+    /* Then a slow float and a breathing glow, only while on screen. */
+    .hero__float {
+      animation: hero-float 9s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+    .hero__glow {
+      animation: glow-breathe 7s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+    .hero__visual.is-playing :is(.hero__float, .hero__glow) {
+      animation-play-state: running;
+    }
+
+    /* Copy: headline lines rise into place; supporting text follows.
+       Transform only, never opacity: on phones the lead paragraph can be the
+       LCP element, and an opacity animation delays LCP until it finishes. */
+    .hero__line {
+      animation: hero-rise 1000ms var(--ease-out-expo) backwards;
+      animation-delay: calc(var(--d, 0) * 90ms + 60ms);
+    }
+    .hero-in {
+      animation: hero-in 900ms var(--ease-out-expo) backwards;
+      animation-delay: calc(var(--d, 0) * 90ms + 60ms);
+    }
+  }
+  @keyframes layer-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-18px);
+    }
+  }
+  @keyframes hero-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+  @keyframes glow-breathe {
+    0%,
+    100% {
+      opacity: 0.85;
+      transform: scale(0.96);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+  }
+  @keyframes hero-rise {
+    from {
+      transform: translateY(0.45em);
+    }
+  }
+  @keyframes hero-in {
+    from {
+      transform: translateY(22px);
+    }
+  }
+
+  /* ---------- 2. Problems ---------- */
+  .bridge {
+    margin: 36px 0 0;
+    font-family: var(--font-heading);
+    font-size: clamp(20px, 2.4vw, 26px);
+    /* 700 keeps the gradient words in the WCAG "large text" band. */
+    font-weight: 700;
+    line-height: 1.35;
+    max-width: 40ch;
+  }
+
+  /* ---------- 4. Steps ---------- */
+  .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  /* Progress bar on each step: fills, in order, as the section scrolls by
+     (motion.ts marks [data-step] .is-active). Full by default without JS. */
+  .step::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 24px;
+    right: 24px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--brand-gradient);
+    transform-origin: 0 50%;
+    transition: transform var(--dur-reveal) var(--ease-out-expo);
+  }
+  .step__num {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1;
+    align-self: flex-start;
+    transition:
+      opacity var(--dur-reveal) var(--ease-out-expo),
+      transform var(--dur-reveal) var(--ease-out-back);
+  }
+  :global(.progress-ready) .step:not(.is-active)::before {
+    transform: scaleX(0);
+  }
+  :global(.progress-ready) .step:not(.is-active) .step__num {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+
+  /* ---------- 5. Selected work ---------- */
+  .section-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0 24px;
+    margin-bottom: 36px;
+  }
+  .section-top :global(.section-heading) {
+    margin-bottom: 0;
+  }
+  .section-top :global(.section-top__link) {
+    margin-top: 20px;
+  }
+
+  /* ---------- 7. FAQ ---------- */
+  .faq-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  @media (min-width: 960px) {
+    .faq-layout {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 56px;
+      align-items: start;
+    }
+  }
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .faq__item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .faq__item[open] {
+    border-color: color-mix(in srgb, var(--brand-blue) 45%, var(--border));
+  }
+  .faq__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 60px;
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.35;
+    border-radius: var(--radius);
+  }
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+  .faq__q:focus-visible {
+    outline-offset: -2px;
+  }
+  /* Plus that turns into a cross when open. */
+  .faq__icon {
+    position: relative;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+  }
+  .faq__icon::before,
+  .faq__icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    margin: -1px 0 0 -6px;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: transform 200ms ease;
+  }
+  .faq__icon::after {
+    transform: rotate(90deg);
+  }
+  .faq__item[open] .faq__icon::before {
+    transform: rotate(45deg);
+  }
+  .faq__item[open] .faq__icon::after {
+    transform: rotate(135deg);
+  }
+  .faq__a {
+    padding: 0 20px 20px;
+  }
+  .faq__a p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+</style>

@@ -1,0 +1,198 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import ServiceCard from '@components/ServiceCard.astro';
+import IconTile from '@components/IconTile.astro';
+import CheckList from '@components/CheckList.astro';
+import PriceTimeline from '@components/PriceTimeline.astro';
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import CTA from '@components/CTA.astro';
+
+const services = (await getCollection('services', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const description =
+  'AI systems, websites and apps, and social media growth for small businesses in the UK and Pakistan. See what we build, typical timelines and starting prices.';
+---
+
+<BaseLayout title="Services" description={description} image="/og/services.png">
+  <Section>
+    <SectionHeading
+      as="h1"
+      label="Services"
+      title="Simple technology that grows your business"
+      subtitle="No jargon and no bloat. We find what's holding your business back, then build the one or two things that will make the biggest difference."
+    />
+
+    <div class="overview" data-reveal-stagger>
+      {
+        services.map((s) => (
+          <ServiceCard
+            headingLevel={2}
+            title={s.data.title}
+            summary={s.data.summary}
+            icon={s.data.icon}
+            outcomes={s.data.outcomes}
+            href={`/services/${s.id}`}
+          />
+        ))
+      }
+    </div>
+  </Section>
+
+  {
+    services.map((s, i) => (
+      <Section bordered id={s.id}>
+        <div class="svc" data-reveal-stagger>
+          <div class="svc__main">
+            <div class="svc__head">
+              <IconTile name={s.data.icon} size="lg" />
+              <div>
+                <p class="svc__num">Service {String(i + 1).padStart(2, '0')}</p>
+                <h2 class="svc__title">{s.data.title}</h2>
+              </div>
+            </div>
+            <p class="svc__tagline">{s.data.tagline}</p>
+
+            <div class="svc__block">
+              <h3>The problem</h3>
+              <p class="svc__problem">{s.data.problem}</p>
+            </div>
+
+            <div class="svc__block">
+              <h3>What we build</h3>
+              <CheckList items={s.data.includes} variant="dot" />
+            </div>
+
+            <div class="svc__block">
+              <h3>For example</h3>
+              <ul class="examples plain-list" data-reveal-stagger>
+                {s.data.examples.map((ex) => (
+                  <li>{ex}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <aside class="svc__aside" aria-label={`${s.data.title}: timeline and pricing`}>
+            <PriceTimeline timeline={s.data.timeline} priceFrom={s.data.priceFrom} />
+            <div class="svc__actions">
+              <WhatsAppButton
+                variant="primary"
+                label="Ask about this"
+                message={`Hi Brightstack, I'd like a free consultation about ${s.data.title}.`}
+              />
+              <Button href={`/services/${s.id}`} variant="secondary">
+                Full details <span class="sr-only">about {s.data.title}</span>
+              </Button>
+            </div>
+          </aside>
+        </div>
+      </Section>
+    ))
+  }
+
+  <CTA
+    heading="Not sure which one you need?"
+    text="Most businesses aren't. Tell us what's slowing you down and we'll recommend the simplest fix. The first call is free."
+    whatsappLabel="Get a free consultation"
+  />
+</BaseLayout>
+
+<style>
+  .overview {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 960px) {
+    .overview {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .svc {
+    display: grid;
+    gap: 32px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 960px) {
+    .svc {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 56px;
+      align-items: start;
+    }
+    .svc__aside {
+      position: sticky;
+      top: 96px;
+    }
+  }
+
+  .svc__head {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .svc__num {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .svc__title {
+    margin: 0;
+  }
+  .svc__tagline {
+    margin: 16px 0 0;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: clamp(19px, 2.2vw, 23px);
+  }
+  .svc__block {
+    margin-top: 32px;
+  }
+  .svc__block h3 {
+    margin: 0 0 12px;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .svc__problem {
+    margin: 0;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  .svc__block :global(.checklist) {
+    color: var(--muted);
+  }
+
+  .examples {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .examples {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .examples li {
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .svc__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+  }
+</style>

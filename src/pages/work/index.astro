@@ -1,0 +1,221 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import SectionHeading from '@components/SectionHeading.astro';
+import CaseStudyCard from '@components/CaseStudyCard.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import CTA from '@components/CTA.astro';
+import { CATEGORY_LABELS, place, type WorkCategory } from '@lib/work';
+
+const work = (await getCollection('work', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const filters = Object.entries(CATEGORY_LABELS) as [WorkCategory, string][];
+
+const description =
+  'Websites, AI systems, branding and social media projects for small businesses in the UK and Pakistan. See the problems we solved and the results.';
+---
+
+<BaseLayout title="Our work" description={description} image="/og/work.png">
+  <Section>
+    <SectionHeading
+      as="h1"
+      label="Our work"
+      title="Real projects for growing businesses"
+      subtitle="Every project starts with a business problem, not a technology. Here's what we built and what changed for our clients."
+    />
+
+    <div class="filters js-only" role="group" aria-label="Filter case studies by type">
+      <button type="button" class="filter" data-filter="all" aria-pressed="true">All</button>
+      {
+        filters.map(([key, label]) => (
+          <button type="button" class="filter" data-filter={key} aria-pressed="false">
+            {label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="sr-only" id="work-status" role="status" aria-live="polite"></p>
+
+    <ul class="work-grid plain-list" id="work-grid" data-reveal-stagger>
+      {
+        work.map((w, i) => (
+          <li data-categories={w.data.categories.join(' ')} style={`--vt-name: work-${w.id}`}>
+            <CaseStudyCard
+              headingLevel={2}
+              eager={i === 0}
+              client={w.data.client}
+              location={place(w.data)}
+              result={w.data.result}
+              image={w.data.image}
+              imageAlt={w.data.imageAlt}
+              href={`/work/${w.id}`}
+            />
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="empty" id="work-empty" hidden>
+      <p class="empty__title">No <span id="work-empty-label">projects</span> case studies to show yet.</p>
+      <p class="empty__text">We build these too. Tell us what you need and we'll show you how it could work for your business.</p>
+      <WhatsAppButton variant="secondary" label="Ask us about it" />
+    </div>
+  </Section>
+
+  <CTA
+    heading="Want results like these?"
+    text="Tell us about your business and what's slowing you down. We'll reply with a simple plan and a fixed quote. The first consultation is free."
+    whatsappLabel="Get a free consultation"
+  />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var buttons = document.querySelectorAll('.filter');
+    var items = document.querySelectorAll('#work-grid > li');
+    var status = document.getElementById('work-status');
+    var empty = document.getElementById('work-empty');
+    var emptyLabel = document.getElementById('work-empty-label');
+    if (!buttons.length) return;
+
+    function apply(filter, updateUrl) {
+      var shown = 0;
+      items.forEach(function (li) {
+        var match = filter === 'all' || li.dataset.categories.split(' ').indexOf(filter) !== -1;
+        li.hidden = !match;
+        if (match) shown++;
+      });
+      var label = 'projects';
+      buttons.forEach(function (b) {
+        var on = b.dataset.filter === filter;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (on && filter !== 'all') label = b.textContent.trim();
+      });
+      empty.hidden = shown !== 0;
+      emptyLabel.textContent = label;
+      status.textContent = 'Showing ' + shown + (shown === 1 ? ' project' : ' projects');
+      if (updateUrl) {
+        var url = new URL(window.location.href);
+        if (filter === 'all') url.searchParams.delete('filter');
+        else url.searchParams.set('filter', filter);
+        history.replaceState(null, '', url);
+      }
+    }
+
+    // Cards glide to their new places instead of jumping (where supported).
+    var grid = document.getElementById('work-grid');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (!document.startViewTransition || reduce) {
+          apply(b.dataset.filter, true);
+          return;
+        }
+        var html = document.documentElement;
+        grid.classList.add('is-filtering');
+        html.classList.add('vt-local'); // only the cards animate, not the page
+        document
+          .startViewTransition(function () {
+            apply(b.dataset.filter, true);
+          })
+          .finished.finally(function () {
+            grid.classList.remove('is-filtering');
+            html.classList.remove('vt-local');
+          });
+      });
+    });
+
+    // Deep links like /work?filter=branding
+    var initial = new URLSearchParams(window.location.search).get('filter');
+    var valid = Array.prototype.some.call(buttons, function (b) {
+      return b.dataset.filter === initial;
+    });
+    if (initial && valid) apply(initial, false);
+  })();
+</script>
+
+<style>
+  .filters {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: -12px 0 32px;
+  }
+  .filter {
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  }
+  .filter:hover {
+    color: var(--text);
+    border-color: var(--brand-blue);
+  }
+  .filter[aria-pressed='true'] {
+    color: var(--text);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  }
+
+  .work-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .work-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 960px) {
+    .work-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .work-grid > li {
+    display: flex;
+  }
+  .work-grid > li[hidden] {
+    display: none;
+  }
+  /* Names only while filtering, so page-to-page transitions stay a simple glide. */
+  .work-grid.is-filtering > li {
+    view-transition-name: var(--vt-name);
+  }
+  .work-grid.is-filtering > li :global(*) {
+    transition: none !important;
+  }
+  .work-grid > li > :global(*) {
+    flex: 1;
+  }
+
+  .empty {
+    padding: 40px 28px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .empty[hidden] {
+    display: none;
+  }
+  .empty__title {
+    margin: 0 0 8px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 21px;
+  }
+  .empty__text {
+    margin: 0 auto 20px;
+    max-width: 48ch;
+    color: var(--muted);
+  }
+</style>

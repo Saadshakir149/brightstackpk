@@ -1,0 +1,99 @@
+---
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  type?: 'button' | 'submit';
+  class?: string;
+  // For external links (e.g. WhatsApp).
+  external?: boolean;
+  'aria-label'?: string;
+}
+const {
+  href,
+  variant = 'primary',
+  type = 'button',
+  class: className = '',
+  external = false,
+  'aria-label': ariaLabel,
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const rel = external ? 'noopener noreferrer' : undefined;
+const target = external ? '_blank' : undefined;
+---
+
+<Tag
+  class:list={['btn', `btn--${variant}`, className]}
+  href={href}
+  type={href ? undefined : type}
+  rel={rel}
+  target={target}
+  aria-label={ariaLabel}
+>
+  <slot />
+</Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: var(--radius);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    /* --mag-x/--mag-y: magnetic pull set by motion.ts (pointer devices only). */
+    transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0) scale(var(--press, 1));
+    transition:
+      transform var(--dur-base) var(--ease-out-expo),
+      box-shadow var(--dur-base) var(--ease-out-expo),
+      background-color var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
+  }
+  .btn:active {
+    --press: 0.97;
+    transition-duration: 120ms;
+  }
+
+  /* Solid brand blue + white text: calm and professional. The gradient is
+     kept for accents (logo, icons, headline words), never button fills. */
+  .btn--primary {
+    background: var(--btn-bg);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  }
+  @media (hover: hover) {
+    .btn--primary:hover {
+      background: var(--btn-bg-hover);
+      box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--btn-bg) 80%, transparent);
+    }
+  }
+
+  .btn--secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn--secondary:hover {
+    border-color: var(--brand-blue);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn--ghost:hover {
+    background: var(--surface);
+  }
+</style>

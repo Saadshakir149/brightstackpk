@@ -1,0 +1,127 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/Section.astro';
+import Button from '@components/Button.astro';
+import CTA from '@components/CTA.astro';
+
+const links = [
+  { href: '/services', title: 'Services', text: 'AI systems, websites and apps, and social media growth' },
+  { href: '/work', title: 'Our work', text: 'Projects for businesses like yours' },
+  { href: '/about', title: 'About', text: 'Who we are and why we do this' },
+  { href: '/contact', title: 'Contact', text: 'WhatsApp or email. We reply within 24 hours' },
+];
+---
+
+<BaseLayout
+  title="Page not found"
+  description="Sorry, we couldn't find that page. Head back to the Brightstack homepage or explore our services and work."
+  image="/og/404.png"
+  noindex
+>
+  <Section>
+    <div class="notfound">
+      <p class="code gradient-text" aria-hidden="true">404</p>
+      <h1>This page wandered off</h1>
+      <p class="lead">
+        The link might be old, or the page may have moved. No problem. Let's get you back on
+        track.
+      </p>
+      <Button href="/" variant="primary">Back to home</Button>
+    </div>
+
+    <h2 class="links-title">Or try one of these</h2>
+    <ul class="links plain-list" data-reveal-stagger>
+      {
+        links.map((l) => (
+          <li>
+            <a class="link spotlight" href={l.href}>
+              <span class="link__title">{l.title}</span>
+              <span class="link__text">{l.text}</span>
+              <span class="link__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <CTA
+    heading="Looking for something specific?"
+    text="Just ask. Send us a message and we'll point you in the right direction."
+    whatsappLabel="Ask us on WhatsApp"
+  />
+</BaseLayout>
+
+<style>
+  .notfound {
+    max-width: 56ch;
+    margin: 0 auto 56px;
+    text-align: center;
+  }
+  .code {
+    margin: 0 0 4px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(80px, 16vw, 160px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .notfound h1 {
+    margin: 0 0 16px;
+    font-size: clamp(34px, 5vw, 56px);
+  }
+  .lead {
+    margin: 0 0 28px;
+    color: var(--muted);
+    font-size: clamp(18px, 2.2vw, 20px);
+  }
+
+  .links-title {
+    margin: 0 0 18px;
+    text-align: center;
+    font-size: clamp(22px, 2.4vw, 26px);
+  }
+  .links {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .links {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    padding: 22px 56px 22px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .link:hover {
+    border-color: var(--brand-blue);
+    transform: translateY(-2px);
+  }
+  .link__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .link__text {
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .link__arrow {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px;
+  }
+</style>

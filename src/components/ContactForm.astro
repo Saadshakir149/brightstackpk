@@ -1,0 +1,779 @@
+---
+import Button from '@components/Button.astro';
+import WhatsAppButton from '@components/WhatsAppButton.astro';
+import {
+  BUDGET_OPTIONS,
+  CONTACT_LIMITS,
+  COUNTRY_OPTIONS,
+  HONEYPOT_FIELD,
+  SERVICE_OPTIONS,
+} from '@lib/contact';
+import { EMAIL, WHATSAPP_NUMBER } from '@config';
+
+// Public Turnstile site key, baked in at build time. Without it every
+// submission would be rejected, so fail the build loudly instead of
+// shipping a broken form. Dev uses Cloudflare's test key (.env.development).
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+if (!siteKey) {
+  throw new Error(
+    'PUBLIC_TURNSTILE_SITE_KEY is not set, so the contact form cannot work. ' +
+      'Add it in Cloudflare Pages > Settings > Variables and Secrets (see README: "Contact form setup").',
+  );
+}
+---
+
+<div class="cform-wrap">
+  <form
+    id="contact-form"
+    class="cform"
+    action="/api/contact"
+    method="post"
+    data-sitekey={siteKey}
+    data-whatsapp={WHATSAPP_NUMBER}
+  >
+    <div class="cform__summary" id="cf-summary" role="alert" tabindex="-1" aria-labelledby="cf-summary-title" hidden>
+      <h3 id="cf-summary-title" class="cform__summary-title">Please check the form</h3>
+      <ul id="cf-summary-list" class="plain-list"></ul>
+    </div>
+
+    <p class="cform__note">All fields are required unless marked optional.</p>
+
+    <div class="cform__row">
+      <div class="field" data-field="name">
+        <label for="cf-name">Your name</label>
+        <p class="field__error" id="cf-name-error"></p>
+        <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength={CONTACT_LIMITS.name} aria-describedby="cf-name-error" />
+      </div>
+
+      <div class="field" data-field="email">
+        <label for="cf-email">Email address</label>
+        <p class="field__error" id="cf-email-error"></p>
+        <input id="cf-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required maxlength={CONTACT_LIMITS.email} aria-describedby="cf-email-error" />
+      </div>
+    </div>
+
+    <div class="field" data-field="whatsapp">
+      <label for="cf-whatsapp">WhatsApp number (optional)</label>
+      <p class="field__hint" id="cf-whatsapp-hint">Include your country code, like +44 7700 900000 or +92 300 1234567.</p>
+      <p class="field__error" id="cf-whatsapp-error"></p>
+      <input id="cf-whatsapp" name="whatsapp" type="tel" autocomplete="tel" inputmode="tel" maxlength={CONTACT_LIMITS.whatsapp} aria-describedby="cf-whatsapp-hint cf-whatsapp-error" />
+    </div>
+
+    <fieldset class="field" data-field="country" aria-describedby="cf-country-error">
+      <legend>Where is your business based?</legend>
+      <p class="field__error" id="cf-country-error"></p>
+      <div class="choices choices--3">
+        {
+          COUNTRY_OPTIONS.map((o) => (
+            <label class="choice" for={`cf-country-${o.value}`}>
+              <input id={`cf-country-${o.value}`} type="radio" name="country" value={o.value} required />
+              <span>{o.label}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="field" data-field="services" aria-describedby="cf-services-hint cf-services-error">
+      <legend>What can we help with? (optional)</legend>
+      <p class="field__hint" id="cf-services-hint">Choose any that apply.</p>
+      <p class="field__error" id="cf-services-error"></p>
+      <div class="choices">
+        {
+          SERVICE_OPTIONS.map((o) => (
+            <label class="choice" for={`cf-services-${o.value}`}>
+              <input id={`cf-services-${o.value}`} type="checkbox" name="services" value={o.value} />
+              <span>{o.label}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <div class="field" data-field="budget">
+      <label for="cf-budget">Budget (optional)</label>
+      <p class="field__error" id="cf-budget-error"></p>
+      <select id="cf-budget" name="budget" aria-describedby="cf-budget-error">
+        <option value="">Choose a budget range</option>
+        {BUDGET_OPTIONS.map((o) => <option value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+
+    <div class="field" data-field="message">
+      <label for="cf-message">How can we help?</label>
+      <p class="field__hint" id="cf-message-hint">Tell us about your business and what you'd like to improve.</p>
+      <p class="field__error" id="cf-message-error"></p>
+      <textarea id="cf-message" name="message" rows="6" required maxlength={CONTACT_LIMITS.message} aria-describedby="cf-message-hint cf-message-error"></textarea>
+    </div>
+
+    <!-- Honeypot: hidden from people and assistive tech; bots fill it in. -->
+    <div class="cform__hp" aria-hidden="true">
+      <label for="cf-hp">Leave this field empty</label>
+      <input id="cf-hp" type="text" name={HONEYPOT_FIELD} tabindex="-1" autocomplete="off" />
+    </div>
+
+    <div class="cform__captcha" id="cf-turnstile"></div>
+    <p class="field__error" id="cf-captcha-error"></p>
+
+    <noscript>
+      <p class="cform__noscript">
+        This form needs JavaScript for spam protection. You can still reach us on
+        <a href={`https://wa.me/${WHATSAPP_NUMBER}`}>WhatsApp</a> or at <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+      </p>
+    </noscript>
+
+    <div class="cform__actions">
+      <Button type="submit" variant="primary" class="cform__submit">
+        <span class="cform__spinner" aria-hidden="true"></span>
+        <span class="cform__submit-label">Send message</span>
+      </Button>
+      <p class="cform__privacy">
+        We only use your details to reply to you. Spam protection by Cloudflare Turnstile.
+      </p>
+    </div>
+  </form>
+
+  <div class="cform__result cform__result--error" id="cf-failure" role="alert" hidden>
+    <h3 class="cform__result-title">Sorry, your message didn't send</h3>
+    <p id="cf-failure-text">
+      Something went wrong on our side. Nothing is lost: tap below and your message will open in
+      WhatsApp, ready to send.
+    </p>
+    <div class="cform__result-actions">
+      <WhatsAppButton variant="primary" label="Message us on WhatsApp instead" class="cf-failure-wa" />
+    </div>
+    <p class="cform__result-small">Or email us at <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>
+  </div>
+
+  <div class="cform__result cform__result--success" id="cf-success" tabindex="-1" aria-labelledby="cf-success-title" hidden>
+    <svg class="cform__result-icon" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M7.5 12.5l3 3 6-6.5" />
+    </svg>
+    <h3 class="cform__result-title" id="cf-success-title">Thanks! We'll reply within 24 hours</h3>
+    <p>Your message is on its way to us. If it's urgent, you can also message us on WhatsApp.</p>
+    <div class="cform__result-actions">
+      <WhatsAppButton variant="secondary" label="WhatsApp us" />
+      <button type="button" class="cform__again" id="cf-again">Send another message</button>
+    </div>
+  </div>
+
+  <!-- Polite announcements: inline errors on blur, sending status. -->
+  <p class="sr-only" id="cf-live" aria-live="polite"></p>
+</div>
+
+<script>
+  import { FIELD_ORDER, TURNSTILE_ACTION, validateContact, type FieldErrors, type FieldName } from '../lib/contact';
+
+  interface Turnstile {
+    render(el: HTMLElement, options: Record<string, unknown>): string;
+    reset(widgetId?: string): void;
+  }
+  declare global {
+    interface Window {
+      turnstile?: Turnstile;
+    }
+  }
+  type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  if (form) setUp(form);
+
+  function setUp(form: HTMLFormElement) {
+    // JS takes over validation; without JS the browser's own checks apply.
+    form.noValidate = true;
+
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const summary = $('cf-summary');
+    const summaryList = $('cf-summary-list');
+    const live = $('cf-live');
+    const success = $('cf-success');
+    const failure = $('cf-failure');
+    const failureText = $('cf-failure-text');
+    const failureWa = failure.querySelector<HTMLAnchorElement>('a')!;
+    const captchaBox = $('cf-turnstile');
+    const captchaError = $('cf-captcha-error');
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const submitLabel = submit.querySelector('.cform__submit-label')!;
+    const defaultFailureText = failureText.textContent ?? '';
+
+    const touched = new Set<FieldName>();
+    const shown: FieldErrors = {};
+    let sending = false;
+
+    // ---------- Field errors ----------
+    const wrapOf = (f: FieldName) => form.querySelector<HTMLElement>(`[data-field="${f}"]`)!;
+    const controlsOf = (f: FieldName) => [...wrapOf(f).querySelectorAll<Control>('input, select, textarea')];
+    const labelOf = (f: FieldName) =>
+      (wrapOf(f).querySelector('label, legend')?.textContent ?? f).replace(/\s*\(optional\)$/, '').trim();
+    const fieldOf = (el: EventTarget | null): FieldName | null => {
+      const wrap = (el as HTMLElement | null)?.closest?.<HTMLElement>('[data-field]');
+      return (wrap?.dataset.field as FieldName | undefined) ?? null;
+    };
+
+    function setError(el: HTMLElement, message?: string) {
+      if (!message) {
+        el.replaceChildren();
+        return;
+      }
+      const prefix = document.createElement('span');
+      prefix.className = 'sr-only';
+      prefix.textContent = 'Error: ';
+      el.replaceChildren(prefix, message);
+    }
+
+    function showFieldError(f: FieldName, message?: string) {
+      setError($(`cf-${f}-error`), message);
+      wrapOf(f).classList.toggle('field--invalid', Boolean(message));
+      for (const c of controlsOf(f)) {
+        if (message) c.setAttribute('aria-invalid', 'true');
+        else c.removeAttribute('aria-invalid');
+      }
+      shown[f] = message;
+    }
+
+    function announce(message: string) {
+      live.textContent = '';
+      window.setTimeout(() => (live.textContent = message), 50);
+    }
+
+    function checkField(f: FieldName, speak: boolean) {
+      const message = validateContact(new FormData(form!)).errors[f];
+      const previous = shown[f];
+      showFieldError(f, message);
+      if (speak && message && message !== previous) announce(`${labelOf(f)}: ${message}`);
+    }
+
+    // Validate when leaving a field (or a whole radio/checkbox group)...
+    form.addEventListener('focusout', (e) => {
+      const f = fieldOf(e.target);
+      if (!f || wrapOf(f).contains(e.relatedTarget as Node | null)) return;
+      touched.add(f);
+      checkField(f, true);
+    });
+    // ...then re-check while typing so errors clear as soon as they're fixed.
+    const recheck = (e: Event) => {
+      const f = fieldOf(e.target);
+      if (f && (touched.has(f) || shown[f])) checkField(f, false);
+    };
+    form.addEventListener('input', recheck);
+    form.addEventListener('change', recheck);
+
+    function showSummary(errors: FieldErrors) {
+      const items = FIELD_ORDER.filter((f) => errors[f]).map((f) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        const first = controlsOf(f)[0];
+        a.href = `#${first.id}`;
+        a.textContent = errors[f]!;
+        a.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          wrapOf(f).scrollIntoView({ block: 'center' });
+          first.focus({ preventScroll: true });
+        });
+        li.append(a);
+        return li;
+      });
+      summaryList.replaceChildren(...items);
+      summary.hidden = false;
+      summary.focus();
+    }
+
+    // ---------- Turnstile (loaded lazily, rendered once) ----------
+    let scriptLoad: Promise<Turnstile> | undefined;
+    let widgetId: string | undefined;
+    let token = '';
+    let captchaFailed = false;
+    let waiters: { resolve: (t: string) => void; reject: (e: Error) => void }[] = [];
+
+    function loadTurnstile(): Promise<Turnstile> {
+      if (window.turnstile) return Promise.resolve(window.turnstile);
+      scriptLoad ??= new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        s.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error('turnstile missing')));
+        s.onerror = () => {
+          scriptLoad = undefined; // allow a retry later
+          reject(new Error('turnstile blocked'));
+        };
+        document.head.append(s);
+      });
+      return scriptLoad;
+    }
+
+    async function ensureWidget() {
+      const ts = await loadTurnstile();
+      if (widgetId !== undefined) return;
+      widgetId = ts.render(captchaBox, {
+        sitekey: form!.dataset.sitekey,
+        action: TURNSTILE_ACTION,
+        theme: document.documentElement.dataset.theme === 'light' ? 'light' : 'dark',
+        size: captchaBox.clientWidth >= 300 ? 'flexible' : 'compact',
+        appearance: 'interaction-only',
+        'response-field': false,
+        callback: (t: string) => {
+          token = t;
+          captchaFailed = false;
+          setError(captchaError);
+          waiters.splice(0).forEach((w) => w.resolve(t));
+        },
+        'expired-callback': () => (token = ''),
+        'error-callback': () => {
+          token = '';
+          captchaFailed = true;
+          waiters.splice(0).forEach((w) => w.reject(new Error('turnstile error')));
+          return true;
+        },
+      });
+    }
+
+    function getToken(): Promise<string> {
+      if (token) return Promise.resolve(token);
+      if (captchaFailed && widgetId !== undefined) {
+        captchaFailed = false;
+        window.turnstile?.reset(widgetId);
+      }
+      return new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error('turnstile timeout')), 20000);
+        waiters.push({
+          resolve: (t) => (window.clearTimeout(timer), resolve(t)),
+          reject: (e) => (window.clearTimeout(timer), reject(e)),
+        });
+        ensureWidget().catch((e: Error) => {
+          window.clearTimeout(timer);
+          waiters = [];
+          reject(e);
+        });
+      });
+    }
+
+    function resetTurnstile() {
+      token = '';
+      if (widgetId !== undefined) window.turnstile?.reset(widgetId);
+    }
+
+    // Start loading when the form is close to view, or as soon as someone interacts.
+    const warmUp = () => ensureWidget().catch(() => {});
+    form.addEventListener('focusin', warmUp, { once: true });
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((en) => en.isIntersecting)) {
+            io.disconnect();
+            warmUp();
+          }
+        },
+        { rootMargin: '300px' },
+      );
+      io.observe(form);
+    } else {
+      warmUp();
+    }
+
+    // ---------- Sending states ----------
+    function setSending(on: boolean) {
+      sending = on;
+      form!.setAttribute('aria-busy', String(on));
+      submit.setAttribute('aria-disabled', String(on));
+      submitLabel.textContent = on ? 'Sending…' : 'Send message';
+      if (on) announce('Sending your message…');
+    }
+
+    function showFailure(data: FormData, reason?: 'captcha') {
+      // Pre-fill WhatsApp with what they typed so nothing has to be re-written.
+      const name = String(data.get('name') ?? '').trim();
+      const message = String(data.get('message') ?? '').trim().slice(0, 1500);
+      const text = `Hi Brightstack${name ? `, I'm ${name}` : ''}. ${message || "I'd like a free consultation."}`;
+      failureWa.href = `https://wa.me/${form!.dataset.whatsapp}?text=${encodeURIComponent(text)}`;
+      failureText.textContent =
+        reason === 'captcha'
+          ? "Our spam check couldn't load (a browser extension can block it). Nothing is lost: tap below and your message will open in WhatsApp, ready to send."
+          : defaultFailureText;
+      failure.hidden = false;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      failure.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    function showSuccess() {
+      form!.reset();
+      touched.clear();
+      FIELD_ORDER.forEach((f) => showFieldError(f));
+      form!.hidden = true;
+      failure.hidden = true;
+      success.hidden = false;
+      success.focus();
+    }
+
+    $('cf-again').addEventListener('click', () => {
+      success.hidden = true;
+      form.hidden = false;
+      $<HTMLInputElement>('cf-name').focus();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (sending) return;
+      failure.hidden = true;
+      setError(captchaError);
+
+      const data = new FormData(form);
+      const { errors } = validateContact(data);
+      FIELD_ORDER.forEach((f) => {
+        touched.add(f);
+        showFieldError(f, errors[f]);
+      });
+      if (Object.keys(errors).length > 0) {
+        showSummary(errors);
+        return;
+      }
+      summary.hidden = true;
+
+      setSending(true);
+      let tokenValue: string;
+      try {
+        tokenValue = await getToken();
+      } catch {
+        setSending(false);
+        showFailure(data, 'captcha');
+        return;
+      }
+      data.set('cf-turnstile-response', tokenValue);
+
+      let body: { ok?: boolean; error?: string; fields?: FieldErrors } | null = null;
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: data,
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(20000),
+        });
+        body = await res.json().catch(() => null);
+      } catch {
+        body = null;
+      }
+      resetTurnstile(); // tokens are single-use
+      setSending(false);
+
+      if (body?.ok) {
+        showSuccess();
+      } else if (body?.error === 'validation' && body.fields) {
+        FIELD_ORDER.forEach((f) => showFieldError(f, body!.fields![f]));
+        showSummary(body.fields);
+      } else if (body?.error === 'captcha') {
+        const msg = "We couldn't confirm you're not a robot. Please press Send again.";
+        setError(captchaError, msg);
+        announce(msg);
+      } else {
+        showFailure(data);
+      }
+    });
+  }
+</script>
+
+<style>
+  .cform {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .cform[hidden] {
+    display: none;
+  }
+  .cform__note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .cform__row {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .cform__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Fields */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    scroll-margin-top: 110px;
+  }
+  .field label,
+  .field legend {
+    padding: 0;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .field legend {
+    margin-bottom: 8px;
+  }
+  .field__hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .field legend + .field__hint {
+    margin-top: -8px;
+  }
+  .field__error {
+    margin: 0;
+    color: var(--danger);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .field__error:empty {
+    display: none;
+  }
+
+  .cform input:not([type='radio'], [type='checkbox']),
+  .cform select,
+  .cform textarea {
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 16px; /* 16px stops iOS zooming on focus */
+    color: var(--text);
+    background: var(--bg);
+    border: 1.5px solid var(--field-border);
+    border-radius: 12px;
+    transition: border-color 150ms ease;
+  }
+  .cform textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+  .cform input:not([type='radio'], [type='checkbox']):focus-visible,
+  .cform select:focus-visible,
+  .cform textarea:focus-visible {
+    border-color: var(--accent);
+  }
+  .field--invalid input:not([type='radio'], [type='checkbox']),
+  .field--invalid select,
+  .field--invalid textarea,
+  .field--invalid .choice {
+    border-color: var(--danger);
+    border-width: 2px;
+  }
+
+  /* Radio + checkbox rows: big tap targets */
+  .choices {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  }
+  .choices--3 {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  }
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 50px;
+    padding: 10px 14px;
+    font-weight: 500 !important;
+    background: var(--bg);
+    border: 1.5px solid var(--field-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+  .choice:has(input:checked) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  }
+  .choice input {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  /* Honeypot */
+  .cform__hp {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .cform__captcha:empty {
+    display: none;
+  }
+  .cform__noscript {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--danger);
+    color: var(--text);
+  }
+  .cform__noscript a {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Error summary */
+  .cform__summary {
+    padding: 18px 20px;
+    border: 2px solid var(--danger);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+    scroll-margin-top: 110px;
+  }
+  .cform__summary[hidden] {
+    display: none;
+  }
+  .cform__summary-title {
+    margin: 0 0 8px;
+    font-size: 19px;
+  }
+  /* :global because the script creates these links at runtime (no scope attribute). */
+  .cform__summary :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--danger);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Submit */
+  .cform__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+  }
+  .cform__actions :global(.cform__submit) {
+    min-width: 190px;
+  }
+  .cform__actions :global(.cform__submit[aria-disabled='true']) {
+    opacity: 0.75;
+    cursor: progress;
+  }
+  .cform__spinner {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid currentColor;
+    border-right-color: transparent;
+    animation: cform-spin 0.8s linear infinite;
+  }
+  .cform[aria-busy='true'] .cform__spinner {
+    display: inline-block;
+  }
+  @keyframes cform-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .cform__privacy {
+    flex: 1 1 220px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Result panels */
+  .cform__result {
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+    background: var(--surface);
+    /* When scrolled into view, clear the fixed header and the mobile tab bar. */
+    scroll-margin: 110px 0 24px;
+  }
+  @media (max-width: 860px) {
+    .cform__result {
+      scroll-margin-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+  @media (max-width: 480px) {
+    .cform__result {
+      padding: 20px 18px;
+    }
+    .cform__result-actions :global(.btn),
+    .cform__again {
+      width: 100%;
+    }
+  }
+  .cform__result[hidden] {
+    display: none;
+  }
+  .cform__result--error {
+    margin-top: 20px;
+    border-color: var(--danger);
+  }
+  .cform__result--success {
+    border-color: var(--success);
+    text-align: left;
+  }
+  .cform__result--success:focus {
+    outline: none;
+  }
+  .cform__result--success:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .cform__result-icon {
+    color: var(--success);
+    margin-bottom: 12px;
+  }
+  .cform__result-title {
+    margin: 0 0 8px;
+    font-size: clamp(21px, 2.4vw, 25px);
+  }
+  .cform__result p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .cform__result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0 0;
+  }
+  .cform__result-small {
+    margin-top: 14px !important;
+    font-size: 15px;
+  }
+  .cform__result-small a {
+    color: var(--accent);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .cform__again {
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .cform__again:hover {
+    background: var(--bg);
+  }
+</style>

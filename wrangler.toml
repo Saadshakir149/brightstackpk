@@ -1,0 +1,6 @@
+# Cloudflare Pages config. Used by `wrangler pages dev` locally and by
+# Cloudflare Pages when deploying. No secrets here: set them in the
+# dashboard (production) or .dev.vars (local). See README.
+name = "brightstack"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-10-01"

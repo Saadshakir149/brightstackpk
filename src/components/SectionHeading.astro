@@ -1,0 +1,56 @@
+---
+interface Props {
+  /** Small eyebrow label above the heading. */
+  label?: string;
+  title: string;
+  subtitle?: string;
+  align?: 'left' | 'center';
+  /** Render as h1 instead of the default h2 (e.g. page hero). */
+  as?: 'h1' | 'h2';
+}
+const { label, title, subtitle, align = 'left', as = 'h2' } = Astro.props;
+const Heading = as;
+---
+
+<div class:list={['section-heading', `section-heading--${align}`, { 'section-heading--page': as === 'h1' }]}>
+  {label && <p class="section-heading__label">{label}</p>}
+  <Heading class="section-heading__title">{title}</Heading>
+  {subtitle && <p class="section-heading__subtitle">{subtitle}</p>}
+</div>
+
+<style>
+  .section-heading {
+    max-width: 60ch;
+    margin-bottom: 36px;
+  }
+  .section-heading--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .section-heading__label {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    margin: 0 0 12px;
+  }
+  .section-heading__title {
+    margin: 0;
+  }
+  .section-heading__subtitle {
+    color: var(--muted);
+    margin: 12px 0 0;
+    font-size: clamp(17px, 2vw, 19px);
+  }
+  .section-heading--page {
+    max-width: 64ch;
+    margin-bottom: 44px;
+  }
+  .section-heading--page .section-heading__title {
+    margin-bottom: 4px;
+  }
+  .section-heading--page .section-heading__subtitle {
+    margin-top: 16px;
+    font-size: clamp(18px, 2.2vw, 21px);
+  }
+</style>
