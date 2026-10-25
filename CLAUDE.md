@@ -4,7 +4,7 @@ This file is the binding contract for building brightstack.pk. Follow it for the
 
 ## Project
 - Company: Brightstack (brightstack.pk). Marketing website.
-- Output: static site, deployed to Cloudflare Pages.
+- Output: static site, hosted on Vercel (GitHub repo connected; every push to `main` deploys). Config in `vercel.json`.
 - Pages: Home, Services (overview + one page per service), Work (case-study list + detail), About, Contact, 404.
 
 ## Tech stack
@@ -75,21 +75,21 @@ Spacing & shape:
   - Descriptions 70–160 characters; titles short enough not to truncate (~60 chars incl. " | Brightstack").
   - OG images are PNGs generated at build by `src/pages/og/[slug].png.ts`. A new page needs an entry there and `image="/og/<slug>.png"` on its BaseLayout.
 - Content honesty: never invent client results, quotes, prices or biography. Use obvious placeholders (`+XX%`, `£XXX`, `[Client name]`) and set `placeholder: true` on sample case studies.
-- Security headers via `public/_headers`.
+- Security headers (and clean URLs) via `vercel.json`.
 - Components: small and reusable in `src/components/`. Services and case studies in Astro content collections (`src/content/`).
 - Secrets ONLY in environment variables (`.env`, documented in `.env.example`). Never commit secrets.
-  - Build-time public: `PUBLIC_TURNSTILE_SITE_KEY` (the build fails without it, deliberately). `.env.development` holds Cloudflare's public *test* key for `astro dev`.
-  - Pages Function runtime: `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (Cloudflare dashboard; `.dev.vars` locally). Setup steps in README.md.
+  - Build-time public: `PUBLIC_TURNSTILE_SITE_KEY`. Without it the contact page shows WhatsApp + email instead of the form (never a form that can't send) and the build log warns. `.env.development` holds Cloudflare's public Turnstile *test* key for `astro dev`.
+  - Vercel Function runtime: `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (Vercel → Settings → Environment Variables). Setup steps in README.md.
   - Env fallbacks use `||`, not `??`, so an empty value in `.env` never blanks a setting.
 
 ## Contact form
-- Browser: `src/components/ContactForm.astro`. Server: `functions/api/contact.ts` (Cloudflare Pages Function, type-checked by `npm run check:functions` as part of `build`).
+- Browser: `src/components/ContactForm.astro`. Server: `api/contact.ts` (Vercel Function, Web-standard `POST(request)` handler, type-checked by `npm run check:api` as part of `build`).
 - Validation rules and form options live ONLY in `src/lib/contact.ts`, imported by both sides. Change rules there, never in one side only.
 - The function must never report success unless Resend accepted the email. Error state always offers the pre-filled WhatsApp fallback.
-- Test locally with `npm run preview:cf` (wrangler); `astro dev` has no `/api/contact`.
+- `astro dev` has no `/api/contact`. Test real sending with `vercel dev` (see README).
 
 ## URLs
-- `build.format: 'file'` (pages emit `contact.html`) so Cloudflare serves `/contact` without a redirect. At build time `Astro.url.pathname` is `/contact.html`: always pass it through `cleanPath()` from `src/lib/seo.ts`.
+- `build.format: 'file'` (pages emit `contact.html`) plus `cleanUrls: true` / `trailingSlash: false` in `vercel.json`, so `/contact` is served directly with no redirect. At build time `Astro.url.pathname` is `/contact.html`: always pass it through `cleanPath()` from `src/lib/seo.ts`.
 
 ## Conventions
 - Pages wrap in `BaseLayout.astro`; SEO handled via a `Seo` component / layout props.

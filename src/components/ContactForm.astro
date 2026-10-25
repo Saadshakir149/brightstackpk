@@ -11,18 +11,36 @@ import {
 import { EMAIL, WHATSAPP_NUMBER } from '@config';
 
 // Public Turnstile site key, baked in at build time. Without it every
-// submission would be rejected, so fail the build loudly instead of
-// shipping a broken form. Dev uses Cloudflare's test key (.env.development).
+// submission would be rejected, so we never show a form that can't send:
+// the page shows WhatsApp + email instead, and the build log warns loudly.
+// Dev uses Cloudflare's test key (.env.development).
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 if (!siteKey) {
-  throw new Error(
-    'PUBLIC_TURNSTILE_SITE_KEY is not set, so the contact form cannot work. ' +
-      'Add it in Cloudflare Pages > Settings > Variables and Secrets (see README: "Contact form setup").',
+  console.warn(
+    '\n[contact form] PUBLIC_TURNSTILE_SITE_KEY is not set: the form is replaced by WhatsApp/email ' +
+      'until you add it in Vercel > Project > Settings > Environment Variables (see README: "Contact form setup").\n',
   );
 }
 ---
 
 <div class="cform-wrap">
+  {
+    !siteKey && (
+      <div class="cform__result cform__unavailable">
+        <h3 class="cform__result-title">Message us directly</h3>
+        <p>
+          Our online form is being set up. The fastest way to reach us is WhatsApp, and we reply
+          within 24 hours.
+        </p>
+        <div class="cform__result-actions">
+          <WhatsAppButton variant="primary" label="Message us on WhatsApp" />
+        </div>
+        <p class="cform__result-small">
+          Or email us at <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+        </p>
+      </div>
+    )
+  }
   <form
     id="contact-form"
     class="cform"
@@ -30,6 +48,7 @@ if (!siteKey) {
     method="post"
     data-sitekey={siteKey}
     data-whatsapp={WHATSAPP_NUMBER}
+    hidden={!siteKey}
   >
     <div class="cform__summary" id="cf-summary" role="alert" tabindex="-1" aria-labelledby="cf-summary-title" hidden>
       <h3 id="cf-summary-title" class="cform__summary-title">Please check the form</h3>
@@ -177,7 +196,8 @@ if (!siteKey) {
   type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
   const form = document.querySelector<HTMLFormElement>('#contact-form');
-  if (form) setUp(form);
+  // No site key at build time = the form is hidden and WhatsApp/email shown instead.
+  if (form?.dataset.sitekey) setUp(form);
 
   function setUp(form: HTMLFormElement) {
     // JS takes over validation; without JS the browser's own checks apply.
@@ -722,6 +742,9 @@ if (!siteKey) {
   .cform__result--error {
     margin-top: 20px;
     border-color: var(--danger);
+  }
+  .cform__unavailable {
+    border-color: var(--border);
   }
   .cform__result--success {
     border-color: var(--success);

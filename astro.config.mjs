@@ -11,9 +11,9 @@ export default defineConfig({
   site: SITE,
   output: 'static',
   trailingSlash: 'never',
-  // Emit contact.html (not contact/index.html) so Cloudflare Pages serves
-  // /contact directly instead of 308-redirecting to /contact/. Keeps URLs,
-  // canonicals and the sitemap identical, with no redirect hop.
+  // Emit contact.html (not contact/index.html); with cleanUrls in vercel.json
+  // Vercel serves /contact directly, with no redirect hop. Keeps URLs,
+  // canonicals and the sitemap identical.
   build: {
     format: 'file',
     // The whole stylesheet is small; inlining it removes render-blocking

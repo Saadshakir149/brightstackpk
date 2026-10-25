@@ -1,5 +1,5 @@
 // Contact form: options, limits and validation shared by the browser
-// (inline validation) and the Pages Function (functions/api/contact.ts),
+// (inline validation) and the Vercel Function (api/contact.ts),
 // so client and server always apply exactly the same rules.
 
 export const CONTACT_LIMITS = {

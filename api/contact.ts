@@ -1,6 +1,7 @@
-// POST /api/contact — Cloudflare Pages Function.
+// POST /api/contact — Vercel Function (Node.js runtime, Web-standard handler).
 // Validates the enquiry server-side, verifies Cloudflare Turnstile, then
-// emails it via Resend. All keys come from environment variables (see README).
+// emails it via Resend. All keys come from environment variables set in the
+// Vercel dashboard (see README).
 import {
   BUDGET_OPTIONS,
   COUNTRY_OPTIONS,
@@ -11,7 +12,7 @@ import {
   validateContact,
   type ContactData,
   type FieldErrors,
-} from '../../src/lib/contact';
+} from '../src/lib/contact';
 
 interface Env {
   TURNSTILE_SECRET_KEY?: string;
@@ -31,10 +32,14 @@ const MAX_BODY_BYTES = 64 * 1024;
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const RESEND_URL = 'https://api.resend.com/emails';
 
-export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
-  if (request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } });
-  }
+const notAllowed = () => new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } });
+export const GET = notAllowed;
+export const PUT = notAllowed;
+export const PATCH = notAllowed;
+export const DELETE = notAllowed;
+
+export async function POST(request: Request): Promise<Response> {
+  const env = process.env as Env;
 
   // Browsers using the enhanced form ask for JSON; anything else (no-JS) gets a redirect.
   const wantsJson = (request.headers.get('accept') ?? '').includes('application/json');
@@ -84,16 +89,17 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (typeof token !== 'string' || token.length === 0 || token.length > 2048) {
     return reply(400, { ok: false, error: 'captcha' });
   }
-  const human = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY!, request.headers.get('cf-connecting-ip'));
+  const ip = request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
+  const human = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY!, ip);
   if (human === 'unavailable') return reply(502, { ok: false, error: 'send' });
   if (!human) return reply(400, { ok: false, error: 'captcha' });
 
-  const country = (request as { cf?: { country?: string } }).cf?.country;
+  const country = request.headers.get('x-vercel-ip-country') ?? undefined;
   const sent = await sendEmail(data, env, country);
   if (!sent) return reply(502, { ok: false, error: 'send' });
 
   return reply(200, { ok: true });
-};
+}
 
 /** true = human, false = rejected, 'unavailable' = could not reach Cloudflare. */
 async function verifyTurnstile(token: string, secret: string, ip: string | null): Promise<boolean | 'unavailable'> {
@@ -138,15 +144,7 @@ async function sendEmail(data: ContactData, env: Env, visitorCountry?: string): 
   ];
   const meta = `Received ${received}${visitorCountry ? ` · sent from ${visitorCountry}` : ''} · brightstack.pk contact form`;
 
-  const text = [
-    ...rows.map(([k, v]) => `${k}: ${v}`),
-    '',
-    'Message:',
-    data.message,
-    '',
-    '—',
-    meta,
-  ].join('\n');
+  const text = [...rows.map(([k, v]) => `${k}: ${v}`), '', 'Message:', data.message, '', '—', meta].join('\n');
 
   const waDigits = data.whatsapp ? internationalDigits(data.whatsapp, data.country) : '';
   const waLink = waDigits ? `https://wa.me/${waDigits}` : '';

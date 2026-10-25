@@ -1,0 +1,16 @@
+{
+  // Type-checks the Vercel Functions in /api against Node types
+  // (kept separate from the Astro/DOM project). Run: npm run check:api
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts", "../src/lib/contact.ts"]
+}
